@@ -1,0 +1,206 @@
+import { requireRole } from "@/lib/auth-utils"
+import { DashboardLayout } from "@/components/dashboard-layout"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { prisma } from "@/lib/prisma"
+import { Users, Calendar, DollarSign, TrendingUp, UserCheck, Clock, FileText } from "lucide-react"
+import Link from "next/link"
+
+async function getHRStats() {
+  const [totalEmployees, activeEmployees, pendingRequests, recentHires, pendingLeaves, approvedLeaves] = await Promise.all([
+    prisma.user.count({
+      where: { role: { notIn: ["ADMIN","HR"] } },
+    }),
+    prisma.user.count({
+      where: {
+        role: { notIn: ["ADMIN","HR"] },
+        isActive: true,
+      },
+    }),
+    prisma.supportTicket.count({
+      where: { status: "OPEN" },
+    }),
+    prisma.user.count({
+      where: {
+        createdAt: {
+          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+        },
+      },
+    }),
+    prisma.leave.count({
+      where: { status: "PENDING" },
+    }),
+    prisma.leave.count({
+      where: { status: "APPROVED" },
+    }),
+  ])
+
+  return {
+    totalEmployees,
+    activeEmployees,
+    pendingRequests,
+    recentHires,
+    pendingLeaves,
+    approvedLeaves,
+  }
+}
+
+export default async function HRDashboard() {
+  await requireRole(["HR", "ADMIN"])
+  const stats = await getHRStats()
+
+  return (
+    <DashboardLayout title="HR Dashboard">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">HR Dashboard</h1>
+          <p className="text-gray-600">Manage employees, HR operations, and leave requests</p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalEmployees}</div>
+              <p className="text-xs text-muted-foreground">All registered employees</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Employees</CardTitle>
+              <UserCheck className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.activeEmployees}</div>
+              <p className="text-xs text-muted-foreground">Currently active</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending Support Requests</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.pendingRequests}</div>
+              <p className="text-xs text-muted-foreground">Awaiting review</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">New Hires (7d)</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.recentHires}</div>
+              <p className="text-xs text-muted-foreground">This week</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending Leave Requests</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.pendingLeaves}</div>
+              <p className="text-xs text-muted-foreground">Needs approval</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Approved Leaves</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.approvedLeaves}</div>
+              <p className="text-xs text-muted-foreground">Currently approved</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Users className="mr-2 h-5 w-5" />
+                Employee Management
+              </CardTitle>
+              <CardDescription>Manage employee records and information</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/employees/users">View All Employees</Link>
+                </Button>
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/newEmployee">Add New Employee</Link>
+                </Button>
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/reports">Employee Reports</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Calendar className="mr-2 h-5 w-5" />
+                Attendance & Leave
+              </CardTitle>
+              <CardDescription>Track attendance and manage leave requests</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  Attendance Records
+                </Button>
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/leaves">Leave Requests</Link>
+                </Button>
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/holidays">Holiday Calendar</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <DollarSign className="mr-2 h-5 w-5" />
+                Payroll & Benefits
+              </CardTitle>
+              <CardDescription>Manage payroll and employee benefits</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  Process Payroll
+                </Button>
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  Benefits Management
+                </Button>
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  Salary Reports
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activity */}
+        
+      </div>
+    </DashboardLayout>
+  )
+}
