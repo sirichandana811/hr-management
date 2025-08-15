@@ -178,7 +178,7 @@ export default async function HRDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <DollarSign className="mr-2 h-5 w-5" />
-                Payroll & Benefits
+                Reviews
               </CardTitle>
               <CardDescription>Reviews</CardDescription>
             </CardHeader>
@@ -189,9 +189,6 @@ export default async function HRDashboard() {
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
                   <Link href="/dashboard/hr/reviews">Reviews Summary</Link>
-                </Button>
-                <Button className="w-full justify-start bg-transparent" variant="outline">
-                  Salary Reports
                 </Button>
               </div>
             </CardContent>

@@ -60,7 +60,6 @@ useEffect(() => {
           ...baseItems,
           { icon: Users, label: "Employees", href: "/dashboard/hr/employees/users" },
           { icon: UserCheck, label: "Attendance", href: "/dashboard/hr/attendance" },
-          { icon: FileText, label: "Payroll", href: "/dashboard/hr/payroll" },
           { icon: FileText, label: "Reviews", href: "/dashboard/hr/reviews" }
         ]
       case "TEACHER":
