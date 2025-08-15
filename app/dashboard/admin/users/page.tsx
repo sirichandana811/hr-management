@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Edit, Trash2 } from "lucide-react";
 
-type UserRole =  "TEACHER" | "CONTENT_CREATOR" | "SUPPORT_STAFF" | "EMPLOYEE";
+type UserRole =  "ADMIN" | "HR" | "TEACHER" | "CONTENT_CREATOR" | "SUPPORT_STAFF" | "EMPLOYEE";
 
 interface User {
   id: string;
@@ -40,7 +40,7 @@ export default function UsersPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/hr/users");
+      const res = await fetch("/api/admin/users");
       if (!res.ok) throw new Error("Failed to fetch users");
       const data = await res.json();
       setUsers(data);
@@ -61,7 +61,7 @@ export default function UsersPage() {
     if (!confirm("Are you sure you want to delete this user?")) return;
 
     try {
-      const res = await fetch(`/api/hr/users/${userId}`, {
+      const res = await fetch(`/api/admin/users/${userId}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete user");

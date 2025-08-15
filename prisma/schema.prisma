@@ -70,7 +70,8 @@ model User {
   createdCourses  Course[]        @relation("CourseCreator")
   assignedCourses Course[]        @relation("CourseTeacher")
   supportTickets  SupportTicket[]
-
+  reviewsGiven    Review[]   @relation("Reviewer") // by HR
+  reviewsReceived Review[]   @relation("Teacher")  // to Teacher
 }
 
 model VerificationToken {
@@ -81,17 +82,7 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
-model Benefit {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String
-  type        String   // e.g., "Health Insurance", "Travel Allowance"
-  amount      Float
-  status      String   @default("ACTIVE") // ACTIVE / INACTIVE
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id])
-}
 
 model Course {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -174,4 +165,21 @@ model Holiday {
   createdBy   User     @relation(fields: [createdById], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+model Review {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  reviewerId String   @db.ObjectId  // HR user id
+  teacherId  String   @db.ObjectId  // Teacher user id
+
+  rating     Int
+  comment    String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  reviewer   User     @relation("Reviewer", fields: [reviewerId], references: [id])
+  teacher    User     @relation("Teacher",  fields: [teacherId],  references: [id])
+
+  @@index([teacherId])
+  @@index([reviewerId])
 }

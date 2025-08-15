@@ -180,15 +180,15 @@ export default async function HRDashboard() {
                 <DollarSign className="mr-2 h-5 w-5" />
                 Payroll & Benefits
               </CardTitle>
-              <CardDescription>Manage payroll and employee benefits</CardDescription>
+              <CardDescription>Reviews</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  Process Payroll
+                  <Link href="/dashboard/hr/reviews/new">+ Write review</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  Benefits Management
+                  <Link href="/dashboard/hr/reviews">Reviews Summary</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
                   Salary Reports

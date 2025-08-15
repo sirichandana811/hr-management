@@ -538,7 +538,7 @@ export default function EditUserPage({
                   setPasswordError("Password cannot be empty");
                   return;
                 }
-
+                console.log("Resetting password for user:", userId);
                 setIsPasswordLoading(true);
                 try {
                   const res = await fetch(

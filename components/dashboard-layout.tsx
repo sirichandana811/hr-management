@@ -61,6 +61,7 @@ useEffect(() => {
           { icon: Users, label: "Employees", href: "/dashboard/hr/employees/users" },
           { icon: UserCheck, label: "Attendance", href: "/dashboard/hr/attendance" },
           { icon: FileText, label: "Payroll", href: "/dashboard/hr/payroll" },
+          { icon: FileText, label: "Reviews", href: "/dashboard/hr/reviews" }
         ]
       case "TEACHER":
         return [
@@ -68,7 +69,7 @@ useEffect(() => {
           { icon: BookOpen, label: "My Courses", href: "/dashboard/teacher/courses" },
           { icon: Users, label: "Students", href: "/dashboard/teacher/students" },
           { icon: FileText, label: "Assignments", href: "/dashboard/teacher/assignments" },
-          
+          { icon: FileText, label: "Review", href: "/dashboard/teacher/reviews" }
         ]
       case "CONTENT_CREATOR":
         return [
