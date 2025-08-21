@@ -48,7 +48,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   if (!session?.user || (session.user.role !== "HR" && session.user.role !== "ADMIN")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const { id } = params;
+  const { id } = await params;
 
   const existing = await prisma.review.findUnique({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });

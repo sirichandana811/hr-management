@@ -14,7 +14,7 @@ export async function GET() {
 
   try {
     const teachers = await prisma.user.findMany({
-      where: { role: UserRole.TEACHER },
+      where: { role: { in: [UserRole.TEACHER, UserRole.CONTENT_CREATOR] } },
       select: { id: true, name: true, email: true, role: true },
       orderBy: { name: "asc" },
     });

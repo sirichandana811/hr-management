@@ -3,12 +3,12 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { prisma } from "@/lib/prisma"
 import { Users, BookOpen, HelpCircle, TrendingUp } from "lucide-react"
-
+import Link from "next/link"
 async function getAdminStats() {
   const [totalUsers, totalCourses, openTickets, recentUsers] = await Promise.all([
     prisma.user.count(),
     prisma.course.count(),
-    prisma.supportTicket.count({
+    prisma.SupportTicket.count({
       where: { status: { in: ["OPEN", "IN_PROGRESS"] } },
     }),
     prisma.user.count({
@@ -88,7 +88,7 @@ export default async function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.openTickets}</div>
-              <p className="text-xs text-muted-foreground">Pending support tickets</p>
+              <Link href="/dashboard/support-ticket" className="text-xs text-muted-foreground">Pending support tickets</Link>
             </CardContent>
           </Card>
 
@@ -138,14 +138,6 @@ export default async function AdminDashboard() {
               <div className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
                 <h3 className="font-medium">Manage Users</h3>
                 <p className="text-sm text-gray-600">Add, edit, or remove user accounts</p>
-              </div>
-              <div className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                <h3 className="font-medium">System Settings</h3>
-                <p className="text-sm text-gray-600">Configure system-wide settings</p>
-              </div>
-              <div className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                <h3 className="font-medium">Generate Reports</h3>
-                <p className="text-sm text-gray-600">View detailed system reports</p>
               </div>
             </div>
           </CardContent>

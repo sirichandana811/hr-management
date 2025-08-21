@@ -3,26 +3,20 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { prisma } from "@/lib/prisma"
-import { FileText, Video, ImageIcon, BookOpen, Plus, Upload, Eye } from "lucide-react"
+import { FileText, Video, ImageIcon, BookOpen, Plus, Upload } from "lucide-react"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import Link from "next/link"
 
 async function getContentStats(userId: string) {
-  const [createdCourses, totalContent] = await Promise.all([
-    prisma.course.count({
-      where: { creatorId: userId },
-    }),
-    prisma.course.count({
-      where: { creatorId: userId },
-    }),
+  const [articles, videos, leaves, courses] = await Promise.all([
+    prisma.article.count({ where: { createdBy: userId } }),
+    prisma.video.count({ where: { createdBy: userId } }),
+    prisma.leave.count({ where: { userId } }),
+    prisma.course.count({ where: { creatorId: userId } }),
   ])
 
-  return {
-    createdCourses,
-    totalContent: totalContent * 15, // Simulated content count
-    publishedContent: totalContent * 12,
-    draftContent: totalContent * 3,
-  }
+  return { articles, videos, leaves, courses }
 }
 
 export default async function ContentCreatorDashboard() {
@@ -42,47 +36,40 @@ export default async function ContentCreatorDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Content</CardTitle>
+              <CardTitle className="text-sm font-medium">Articles</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalContent}</div>
-              <p className="text-xs text-muted-foreground">All content items</p>
+              <div className="text-2xl font-bold">{stats.articles}</div>
+              <p className="text-xs text-muted-foreground">Created articles</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Published</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Videos</CardTitle>
+              <Video className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.publishedContent}</div>
-              <p className="text-xs text-muted-foreground">Live content</p>
+              <div className="text-2xl font-bold">{stats.videos}</div>
+              <p className="text-xs text-muted-foreground">Uploaded videos</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Drafts</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Leaves</CardTitle>
+              <ImageIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.draftContent}</div>
-              <p className="text-xs text-muted-foreground">Work in progress</p>
+              <div className="text-2xl font-bold">{stats.leaves}</div>
+              <p className="text-xs text-muted-foreground">Leave requests</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Courses</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.createdCourses}</div>
-              <p className="text-xs text-muted-foreground">Created courses</p>
-            </CardContent>
-          </Card>
+          
+            
+            
         </div>
 
         {/* Content Creation Tools */}
@@ -99,16 +86,13 @@ export default async function ContentCreatorDashboard() {
               <div className="space-y-2">
                 <Button className="w-full justify-start">
                   <FileText className="mr-2 h-4 w-4" />
-                  New Article
+                  <Link href="/dashboard/content/article/new">New Article</Link>
                 </Button>
                 <Button className="w-full justify-start">
                   <Video className="mr-2 h-4 w-4" />
-                  New Video
+                  <Link href="/dashboard/content/video/new">New Video</Link>
                 </Button>
-                <Button className="w-full justify-start">
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  New Course
-                </Button>
+                
               </div>
             </CardContent>
           </Card>
@@ -116,23 +100,22 @@ export default async function ContentCreatorDashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Upload className="mr-2 h-5 w-5" />
-                Content Library
+                <ImageIcon className="mr-2 h-5 w-5" />
+                Leave Management
               </CardTitle>
-              <CardDescription>Manage your existing content</CardDescription>
+              <CardDescription>Manage leave requests and approvals</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Eye className="mr-2 h-4 w-4" />
-                  View All Content
+                  <Upload className="mr-2 h-4 w-4" />
+                  <Link href="/dashboard/leaves/apply">Apply Leave</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Draft Content
+                  <Link href="/dashboard/leaves/history">Leave History</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  Content Analytics
+                  <Link href="/dashboard/holidays">Holiday Calendar</Link>
                 </Button>
               </div>
             </CardContent>
@@ -142,59 +125,58 @@ export default async function ContentCreatorDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <ImageIcon className="mr-2 h-5 w-5" />
-                Media & Assets
+                Review Management
               </CardTitle>
-              <CardDescription>Manage images, videos, and files</CardDescription>
+              <CardDescription>Manage reviews and feedback</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Media
-                </Button>
-                <Button className="w-full justify-start bg-transparent" variant="outline">
-                  Media Library
-                </Button>
-                <Button className="w-full justify-start bg-transparent" variant="outline">
-                  Asset Templates
+                  <Link href="/dashboard/reviews">View Reviews</Link>
                 </Button>
               </div>
             </CardContent>
           </Card>
+          <Card>
+           
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <ImageIcon className="mr-2 h-5 w-5" />
+                Payroll Management
+              </CardTitle>
+              <CardDescription>Manage payroll and compensation</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/payroll">View Payroll</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+                      <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <FileText className="mr-2 h-5 w-5" />
+                          Ticket Management
+                        </CardTitle>
+                        <CardDescription>Create and manage support tickets</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <Button className="w-full justify-start">
+                            <Plus className="mr-2 h-4 w-4" />
+                            <Link href="/dashboard/support-ticket">Create Ticket</Link>
+                          </Button>
+                          <Button variant="outline" className="w-full justify-start">
+                            <Link href="/dashboard/support-ticket/view">View All Tickets</Link>
+                          </Button>
+                          
+                        </div>
+                      </CardContent>
+                    </Card>
+          
         </div>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Content Activity</CardTitle>
-            <CardDescription>Your latest content creation activities</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Published new course</p>
-                  <p className="text-xs text-gray-500">"Advanced React Concepts" - 2 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Updated video content</p>
-                  <p className="text-xs text-gray-500">"JavaScript Fundamentals" - 4 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Created new article draft</p>
-                  <p className="text-xs text-gray-500">"Best Practices in Web Development" - 1 day ago</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </DashboardLayout>
   )

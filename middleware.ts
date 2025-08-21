@@ -21,7 +21,7 @@ export async function middleware(req: NextRequest) {
     const roleFromPath = pathname.split("/")[2];
 
     // Pages that all authenticated users can access
-    const sharedPages = ["profile", "settings", "leave-history", "payroll"];
+    const sharedPages = ["profile", "settings", "leaves", "payroll","support-ticket","reviews"];
     if (sharedPages.includes(roleFromPath)) {
       return NextResponse.next();
     }

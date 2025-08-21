@@ -66,7 +66,7 @@ export default function HrLeaveManagementPage() {
     if (!confirm("Cancel this approved leave?")) return;
     setProcessingId(leaveId);
     try {
-      const res = await fetch("/api/leaves/hr-cancel", {
+      const res = await fetch("/api/leaves/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ leaveId }),

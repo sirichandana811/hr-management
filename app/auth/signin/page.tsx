@@ -48,8 +48,7 @@ export default function SignInPage() {
           HR: "/dashboard/hr",
           TEACHER: "/dashboard/teacher",
           CONTENT_CREATOR: "/dashboard/content",
-          SUPPORT_STAFF: "/dashboard/support",
-          EMPLOYEE: "/dashboard/employee",
+         
         }
 
         router.push(roleRoutes[session.user.role] || "/select-role")
@@ -106,8 +105,7 @@ export default function SignInPage() {
                 <option value="HR">HR</option>
                 <option value="TEACHER">Teacher</option>
                 <option value="CONTENT_CREATOR">Content Creator</option>
-                <option value="SUPPORT_STAFF">Support Staff</option>
-                <option value="EMPLOYEE">Employee</option>
+               
               </select>
             </div>
 

@@ -84,38 +84,11 @@ export default async function TeacherDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Students</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalStudents}</div>
-              <p className="text-xs text-muted-foreground">Across all courses</p>
-            </CardContent>
-          </Card>
+         
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Assignments</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">Active assignments</p>
-            </CardContent>
-          </Card>
+          
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">This Week</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">8</div>
-              <p className="text-xs text-muted-foreground">Scheduled classes</p>
-            </CardContent>
-          </Card>
+         
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -144,11 +117,11 @@ export default async function TeacherDashboard() {
               <div className="space-y-2">
                 <Button className="w-full justify-start">
                   <Plus className="mr-2 h-4 w-4" />
-                  Create New Course
+                  <Link href="/dashboard/teacher/courses/new">Create New Course</Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <Eye className="mr-2 h-4 w-4" />
-                  View All Courses
+                  <Link href="/dashboard/teacher/courses">View All Courses</Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   Course Analytics
@@ -161,45 +134,40 @@ export default async function TeacherDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Users className="mr-2 h-5 w-5" />
-                Student Management
+                Payroll Management
               </CardTitle>
-              <CardDescription>Track student progress</CardDescription>
+              <CardDescription>Track payroll details</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <Button variant="outline" className="w-full justify-start">
-                  Student Roster
+                  <Link href="/dashboard/payroll">View Payroll</Link>
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  Grade Book
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  Progress Reports
-                </Button>
+                
+               
               </div>
             </CardContent>
           </Card>
+               
 
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <FileText className="mr-2 h-5 w-5" />
-                Assignments & Tests
+                Ticket Management
               </CardTitle>
-              <CardDescription>Create and grade assignments</CardDescription>
+              <CardDescription>Create and manage support tickets</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <Button className="w-full justify-start">
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Assignment
+                  <Link href="/dashboard/support-ticket">Create Ticket</Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
-                  Grade Submissions
+                  <Link href="/dashboard/support-ticket/view">View All Tickets</Link>
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  Assignment Library
-                </Button>
+                
               </div>
             </CardContent>
           </Card>
@@ -222,6 +190,9 @@ export default async function TeacherDashboard() {
                 <Button variant="outline" className="w-full justify-start">
                   <Link href="/dashboard/teacher/leaves/history">View Leave History</Link>
                 </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <Link href="/dashboard/teacher/holidays">View Holidays</Link>
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -241,16 +212,13 @@ export default async function TeacherDashboard() {
                     <div>
                       <h3 className="font-medium">{course.title}</h3>
                       <p className="text-sm text-gray-600">
-                        {course.subject} • {course.grade}
+                        {course.subject} • {course.description}
                       </p>
                       <p className="text-xs text-gray-500">
                         Updated {new Date(course.updatedAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="flex space-x-2">
-                      <Button size="sm" variant="outline">Edit</Button>
-                      <Button size="sm">View</Button>
-                    </div>
+                    
                   </div>
                 ))}
               </div>

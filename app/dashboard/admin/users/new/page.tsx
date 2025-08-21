@@ -29,8 +29,7 @@ const roleOptions = [
   { value: "HR", label: "Human Resources" },
   { value: "TEACHER", label: "Teacher" },
   { value: "CONTENT_CREATOR", label: "Content Creator" },
-  { value: "SUPPORT_STAFF", label: "Support Staff" },
-  { value: "EMPLOYEE", label: "Employee" },
+  
 ];
 
 export default function NewUserPage() {

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { title, description, priority } = createTicketSchema.parse(body)
 
-    const ticket = await prisma.supportTicket.create({
+    const ticket = await prisma.SupportTicket.create({
       data: {
         title,
         description,
@@ -39,5 +39,26 @@ export async function POST(request: NextRequest) {
 
     console.error("Create support ticket error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    const tickets = await prisma.SupportTicket.findMany({
+      where: {
+        userId: session.user.id, // only show logged-in user tickets
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return NextResponse.json(tickets);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Failed to fetch tickets" }, { status: 500 });
   }
 }

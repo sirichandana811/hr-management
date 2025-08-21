@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     where: { id: teacherId },
     select: { id: true, role: true, isActive: true },
   });
-  if (!teacher || teacher.role !== "TEACHER") {
+  if (!teacher || (teacher.role !== "TEACHER" && teacher.role !== "CONTENT_CREATOR")) {
     return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
   }
 
@@ -63,11 +63,12 @@ export async function GET(req: Request) {
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
+      
       rating: true,
       comment: true,
       createdAt: true,
       updatedAt: true,
-      teacher: { select: { id: true, name: true, email: true } },
+      teacher: { select: { id: true, name: true, email: true, role: true } },
       reviewer: { select: { id: true, name: true, email: true } },
     },
   });

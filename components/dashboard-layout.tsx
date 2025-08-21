@@ -41,6 +41,9 @@ useEffect(() => {
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/auth/signin" })
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = "/signin";
   }
 
   const getNavigationItems = () => {
@@ -52,38 +55,42 @@ useEffect(() => {
         return [
           ...baseItems,
           { icon: Users, label: "User Management", href: "/dashboard/admin/users" },
-          { icon: Settings, label: "System Settings", href: "/dashboard/admin/settings" },
-          { icon: FileText, label: "Reports", href: "/dashboard/admin/reports" },
+         
+          { icon: HelpCircle, label: "Support Tickets", href: "/dashboard/admin/ticket" },
         ]
       case "HR":
         return [
           ...baseItems,
           { icon: Users, label: "Employees", href: "/dashboard/hr/employees/users" },
-          { icon: UserCheck, label: "Attendance", href: "/dashboard/hr/attendance" },
-          { icon: FileText, label: "Reviews", href: "/dashboard/hr/reviews" }
+          { icon: UserCheck, label: "Payroll", href: "/dashboard/hr/payroll" },
+          { icon: FileText, label: "Reviews", href: "/dashboard/hr/reviews" },
+         { icon: FileText, label: "Leave Requests", href: "/dashboard/hr/leaves" },
+         { icon: FileText, label: "Tickets", href: "/dashboard/hr/support-ticket" }
         ]
       case "TEACHER":
         return [
           ...baseItems,
           { icon: BookOpen, label: "My Courses", href: "/dashboard/teacher/courses" },
-          { icon: Users, label: "Students", href: "/dashboard/teacher/students" },
-          { icon: FileText, label: "Assignments", href: "/dashboard/teacher/assignments" },
-          { icon: FileText, label: "Review", href: "/dashboard/teacher/reviews" }
+          { icon: BookOpen, label: "Payroll", href: "/dashboard/payroll" },
+          { icon: FileText, label: "Reviews", href: "/dashboard/reviews" },
+          { icon: FileText, label: "Leave Requests", href: "/dashboard/leaves/history" },
+        
         ]
       case "CONTENT_CREATOR":
         return [
           ...baseItems,
-          { icon: BookOpen, label: "Content Library", href: "/dashboard/content/library" },
-          { icon: FileText, label: "Create Content", href: "/dashboard/content/create" },
-          { icon: Settings, label: "Publishing", href: "/dashboard/content/publish" },
+          { icon: BookOpen, label: "Payroll", href: "/dashboard/payroll" },
+          { icon: FileText, label: "Reviews", href: "/dashboard/reviews" },
+          { icon: FileText, label: "Leave Requests", href: "/dashboard/leaves/history" },
+
         ]
-      case "SUPPORT_STAFF":
+      /*case "SUPPORT_STAFF":
         return [
           ...baseItems,
           { icon: HelpCircle, label: "Support Tickets", href: "/dashboard/support/tickets" },
           { icon: Users, label: "User Issues", href: "/dashboard/support/users" },
           { icon: FileText, label: "Knowledge Base", href: "/dashboard/support/kb" },
-        ]
+        ]*/
       default:
         return [
           ...baseItems,
@@ -142,9 +149,16 @@ useEffect(() => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
-                    <span>Profile Settings</span>
-                  </DropdownMenuItem>
+                  {session?.user?.role === "ADMIN" && (
+                    <DropdownMenuItem onClick={() => router.push("/dashboard/admin/profile")}>
+                      <span>Profile Settings</span>
+                    </DropdownMenuItem>
+                  )}
+                  {session?.user?.role !== "ADMIN" && (
+                    <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
+                      <span>Profile Settings</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />

@@ -100,7 +100,7 @@ export default function NewReviewPage() {
                             teacherId === t.id ? "opacity-100" : "opacity-0"
                           )}
                         />
-                        {t.name || t.email} ({t.email})
+                        {t.name || t.email} ({t.email})({t.role})
                       </CommandItem>
                     ))}
                   </CommandGroup>

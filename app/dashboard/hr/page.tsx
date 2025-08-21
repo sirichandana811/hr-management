@@ -144,9 +144,7 @@ export default async function HRDashboard() {
                 <Button className="w-full justify-start bg-transparent" variant="outline">
                   <Link href="/dashboard/hr/newEmployee">Add New Employee</Link>
                 </Button>
-                <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/reports">Employee Reports</Link>
-                </Button>
+                
               </div>
             </CardContent>
           </Card>
@@ -155,15 +153,13 @@ export default async function HRDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Calendar className="mr-2 h-5 w-5" />
-                Attendance & Leave
+               Leave Management
               </CardTitle>
               <CardDescription>Track attendance and manage leave requests</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Button className="w-full justify-start bg-transparent" variant="outline">
-                  Attendance Records
-                </Button>
+                
                 <Button className="w-full justify-start bg-transparent" variant="outline">
                   <Link href="/dashboard/hr/leaves">Leave Requests</Link>
                 </Button>
@@ -193,6 +189,44 @@ export default async function HRDashboard() {
               </div>
             </CardContent>
           </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <DollarSign className="mr-2 h-5 w-5" />
+                Ticket Management
+              </CardTitle>
+              <CardDescription>Manage employee tickets and requests</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/support-ticket">+ Create Ticket</Link>
+                </Button>
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/support-ticket/view">View All Tickets</Link>
+                </Button>
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/userticket">Resolve Tickets</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+             <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <DollarSign className="mr-2 h-5 w-5" />
+                Payroll Management
+              </CardTitle>
+              <CardDescription>Manage employee payrolls and compensation</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/payroll">View All Payrolls</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>    
         </div>
 
         {/* Recent Activity */}

@@ -12,7 +12,8 @@ type Review = {
   rating: number;
   comment?: string | null;
   createdAt: string;
-  teacher: { id: string; name: string | null; email: string };
+  role: string | null;
+  teacher: { id: string; name: string | null; email: string; role: string | null };
   reviewer: { id: string; name: string | null; email: string };
 };
 
@@ -51,7 +52,7 @@ export default function HrReviewsList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Teacher</TableHead>
+            <TableHead>User</TableHead>
             <TableHead>Rating</TableHead>
             <TableHead>Comment</TableHead>
             <TableHead>Date</TableHead>
@@ -61,7 +62,7 @@ export default function HrReviewsList() {
         <TableBody>
           {filtered.map(r => (
             <TableRow key={r.id}>
-              <TableCell>{r.teacher.name || r.teacher.email}</TableCell>
+              <TableCell>{r.teacher.name || r.teacher.email} ({r.teacher.role})</TableCell>
               <TableCell>{r.rating}</TableCell>
               <TableCell className="max-w-[400px] truncate">{r.comment || "-"}</TableCell>
               <TableCell>{new Date(r.createdAt).toLocaleString()}</TableCell>

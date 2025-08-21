@@ -47,7 +47,7 @@ model User {
   role          UserRole?
   department    String?
   employeeId    String?   @unique
-  phoneNumber   String?
+  phoneNumber   Int?
   address       String?
   dateOfJoining DateTime?
   salary        Float?
@@ -72,6 +72,8 @@ model User {
   supportTickets  SupportTicket[]
   reviewsGiven    Review[]   @relation("Reviewer") // by HR
   reviewsReceived Review[]   @relation("Teacher")  // to Teacher
+  payroll Payroll?
+
 }
 
 model VerificationToken {
@@ -89,7 +91,7 @@ model Course {
   title       String
   description String?
   subject     String
-  grade       String
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   isActive    Boolean  @default(true)
@@ -109,7 +111,7 @@ model SupportTicket {
   priority    TicketPriority @default(MEDIUM)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
-
+  
   userId String @db.ObjectId
   user   User   @relation(fields: [userId], references: [id])
 }
@@ -182,4 +184,30 @@ model Review {
 
   @@index([teacherId])
   @@index([reviewerId])
+}
+model Article {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  createdBy String   // User ID of the content creator
+}
+
+model Video {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  url       String   // YouTube/Vimeo/Cloud link
+  createdAt DateTime @default(now())
+  createdBy String   // User ID of the content creator
+}
+model Payroll {
+ id          String  @id @map("_id") @default(auto()) @db.ObjectId
+  userId      String  @unique
+  basic       Float
+  hra         Float
+  allowances  Float
+  deductions  Float
+  grossSalary Float
+  netSalary   Float
+  user        User    @relation(fields: [userId], references: [id])
 }

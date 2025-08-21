@@ -21,8 +21,7 @@ const roleOptions: { value: Role; label: string }[] = [
   { value: ROLES.HR, label: "Human Resources" },
   { value: ROLES.TEACHER, label: "Teacher" },
   { value: ROLES.CONTENT_CREATOR, label: "Content Creator" },
-  { value: ROLES.SUPPORT_STAFF, label: "Support Staff" },
-  { value: ROLES.EMPLOYEE, label: "Employee" },
+
 ]
 
 export default function SignUpPage() {
