@@ -26,6 +26,7 @@ export async function POST(req: Request) {
       where: {
         userId,
         leaveTypeId,
+        status: { notIn: ["REJECTED", "CANCELLED"] },
         OR: [
           {
             startDate: { lte: end },
