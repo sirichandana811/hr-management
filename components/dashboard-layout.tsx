@@ -1,10 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -16,8 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Users, BookOpen, FileText, HelpCircle, Settings, LogOut, Home, UserCheck } from "lucide-react"
-import LeaveHistoryPage from "@/app/dashboard/teacher/leaves/history/page"
-import { text } from "stream/consumers"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -28,24 +24,11 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
   const { data: session } = useSession()
   const router = useRouter()
 
-  // --- ADDED: sign out HR user on Back navigation ---
-useEffect(() => {
-    const handleBeforeUnload = () => {
-      signOut({ redirect: false }) // Sign out silently on page unload
-    }
-
-    window.addEventListener("beforeunload", handleBeforeUnload)
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload)
-    }
-  }, [])
-  // ---------------------------------------------------
-
+  // ✅ Cleaned-up SignOut
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/auth/signin" })
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "/signin";
+    localStorage.clear()
+    sessionStorage.clear()
+    await signOut({ callbackUrl: "/auth/signin" }) // redirect handled by NextAuth
   }
 
   const getNavigationItems = () => {
@@ -67,7 +50,7 @@ useEffect(() => {
           ...baseItems,
           { icon: Users, label: "Employees", href: "/dashboard/hr/employees/users" },
           { icon: FileText, label: "Reviews", href: "/dashboard/hr/reviews" },
-         { icon: FileText, label: "Leave Requests", href: "/dashboard/hr/leaves" },
+          { icon: FileText, label: "Leave Requests", href: "/dashboard/hr/leaves" },
         ]
       case "TEACHER":
         return [
@@ -77,21 +60,6 @@ useEffect(() => {
           { icon: FileText, label: "Leave Requests", href: "/dashboard/teacher/leaves/history" },
           { icon: UserCheck, label: "Attendance", href: "/dashboard/teacher/attendance" },
         ]
-     /* case "CONTENT_CREATOR":
-        return [
-          ...baseItems,
-          { icon: BookOpen, label: "Payroll", href: "/dashboard/payroll" },
-          { icon: FileText, label: "Reviews", href: "/dashboard/reviews" },
-          { icon: FileText, label: "Leave Requests", href: "/dashboard/leaves/history" },
-
-        ]*/
-      /*case "SUPPORT_STAFF":
-        return [
-          ...baseItems,
-          { icon: HelpCircle, label: "Support Tickets", href: "/dashboard/support/tickets" },
-          { icon: Users, label: "User Issues", href: "/dashboard/support/users" },
-          { icon: FileText, label: "Knowledge Base", href: "/dashboard/support/kb" },
-        ]*/
       default:
         return [
           ...baseItems,
