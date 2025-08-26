@@ -1,142 +1,111 @@
 "use client";
 
-import { DashboardLayout } from "@/components/dashboard-layout";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
-interface Leave {
+type Leave = {
   id: string;
-  type: string;
+  leaveTypeName: string;
   startDate: string;
   endDate: string;
-  reason: string;
-  status: string;
-}
+  days: number;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  reason?: string;
+  createdAt: string;
+};
 
 export default function LeaveHistoryPage() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(true);
-  const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const router = useRouter();
+  const [message, setMessage] = useState<string | null>(null);
 
-  // Fetch leaves only if user is logged in
-  const fetchLeaves = async (userId: string) => {
+  const fetchLeaves = async () => {
+    if (!session?.user.id) return;
+    setLoading(true);
     try {
-      const res = await fetch(`/api/leaves/history?userId=${userId}`);
+      const res = await fetch(`/api/leaves/history?userId=${session.user.id}`);
       const data = await res.json();
-
-      // Defensive check: data might not be an array
-      if (Array.isArray(data)) {
-        setLeaves(data);
-      } else {
-        console.warn("Leave history API did not return an array");
-        setLeaves([]);
-      }
-    } catch (error) {
-      console.error("Error fetching leaves:", error);
+      setLeaves(data || []);
+    } catch (err) {
+      console.error(err);
       setLeaves([]);
-    } finally {
-      setLoading(false);
-      setCancellingId(null);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.id) {
-      fetchLeaves(session.user.id);
-    } else if (status === "unauthenticated") {
-      // If unauthenticated, redirect or show a message
-      router.push("/auth/signin");
-    }
-  }, [status, session?.user?.id, router]);
+    fetchLeaves();
+  }, [session?.user.id]);
 
   const handleCancel = async (leaveId: string) => {
-    if (!confirm("Are you sure you want to cancel this leave?")) return;
-    setCancellingId(leaveId);
-
+    if (!session?.user.id) return;
     try {
-      const res = await fetch("/api/leaves/cancel", {
-        method: "POST",
+      const res = await fetch("/api/leaves/history", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leaveId }),
+        body: JSON.stringify({ leaveId, userId: session.user.id }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        alert(data.error || "Failed to cancel leave.");
-      } else {
-        alert(data.message || "Leave cancelled.");
-        if (session?.user?.id) {
-          fetchLeaves(session.user.id);
-        }
+      if (!res.ok) setMessage(data.error || "Something went wrong");
+      else {
+        setMessage("Leave cancelled successfully!");
+        fetchLeaves(); // refresh the list
       }
-    } catch (error) {
-      console.error(error);
-      alert("Server error while cancelling leave.");
-    } finally {
-      setCancellingId(null);
+    } catch (err) {
+      console.error(err);
+      setMessage("Something went wrong");
     }
   };
 
-  if (loading) return <p>Loading leave history...</p>;
-
   return (
     <DashboardLayout title="Leave History">
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Leave History</h1>
-          <button
-            onClick={() => router.push("/dashboard/teacher")}
-            className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
-          >
-            Back
-          </button>
-        </div>
-
-        {leaves.length === 0 ? (
-          <p>No leave records found.</p>
+      <div className="max-w-5xl mx-auto mt-10">
+        {message && <p className="text-center text-red-600 mb-4">{message}</p>}
+        {loading ? (
+          <p>Loading...</p>
+        ) : leaves.length === 0 ? (
+          <p>No leaves found</p>
         ) : (
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border p-2">Type</th>
-                <th className="border p-2">Start Date</th>
-                <th className="border p-2">End Date</th>
-                <th className="border p-2">Reason</th>
-                <th className="border p-2">Status</th>
-                <th className="border p-2">Action</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Leave Type</TableHead>
+                <TableHead>From</TableHead>
+                <TableHead>To</TableHead>
+                <TableHead>Days</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Reason</TableHead>
+                <TableHead>Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {leaves.map((leave) => (
-                <tr key={leave.id}>
-                  <td className="border p-2">{leave.type}</td>
-                  <td className="border p-2">
-                    {new Date(leave.startDate).toLocaleDateString()}
-                  </td>
-                  <td className="border p-2">
-                    {new Date(leave.endDate).toLocaleDateString()}
-                  </td>
-                  <td className="border p-2">{leave.reason}</td>
-                  <td className="border p-2">{leave.status}</td>
-                  <td className="border p-2">
-                     {leave.status === "PENDING" ? (
-    <button
-      disabled={cancellingId === leave.id}
-      onClick={() => handleCancel(leave.id)}
-      className="bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700 disabled:opacity-50"
-    >
-      {cancellingId === leave.id ? "Cancelling..." : "Cancel"}
-    </button>
-  ) : (
-    <span className="text-gray-500">-</span>
-  )}
-                  </td>
-                </tr>
+                <TableRow key={leave.id}>
+                  <TableCell>{leave.leaveTypeName}</TableCell>
+                  <TableCell>{new Date(leave.startDate).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(leave.endDate).toLocaleDateString()}</TableCell>
+                  <TableCell>{leave.days}</TableCell>
+                  <TableCell>{leave.status}</TableCell>
+                  <TableCell>{leave.reason || "-"}</TableCell>
+                  <TableCell>
+                    {leave.status === "PENDING" && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleCancel(leave.id)}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </div>
     </DashboardLayout>

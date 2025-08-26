@@ -84,12 +84,12 @@ export default function UsersPage() {
           <div className="flex gap-2">
             <Button
               variant="secondary"
-              onClick={() => router.push("/dashboard/admin")}
+              onClick={() => router.push("/dashboard/hr")}
               className="bg-gray-500 hover:bg-gray-600 text-white"
             >
               Back
             </Button>
-            <Link href="/dashboard/admin/users/new" passHref>
+            <Link href="/dashboard/hr/employees/users/new" passHref>
               <Button>Create New User</Button>
             </Link>
           </div>

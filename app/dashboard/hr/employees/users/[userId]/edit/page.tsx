@@ -45,14 +45,7 @@ interface User {
   phoneNumber: string | null;
   address: string | null;
   dateOfJoining: string | null;
-  salary: number | null;
   isActive: boolean;
-  maxCL: number;
-  usedCL: number;
-  maxSL: number;
-  usedSL: number;
-  maxPL: number;
-  usedPL: number;
 }
 
 export default function EditEmployeePage({
@@ -71,14 +64,7 @@ export default function EditEmployeePage({
     phoneNumber: "",
     address: "",
     dateOfJoining: "",
-    salary: "",
     isActive: true,
-    maxCL: 20,
-    usedCL: 0,
-    maxSL: 20,
-    usedSL: 0,
-    maxPL: 20,
-    usedPL: 0,
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -112,14 +98,7 @@ export default function EditEmployeePage({
         dateOfJoining: userData.dateOfJoining
           ? new Date(userData.dateOfJoining).toISOString().substring(0, 10)
           : "",
-        salary: userData.salary !== null ? userData.salary.toString() : "",
         isActive: userData.isActive,
-        maxCL: userData.maxCL ?? 20,
-        usedCL: userData.usedCL ?? 0,
-        maxSL: userData.maxSL ?? 20,
-        usedSL: userData.usedSL ?? 0,
-        maxPL: userData.maxPL ?? 20,
-        usedPL: userData.usedPL ?? 0,
       });
     } catch {
       setError("Failed to load user data");
@@ -132,21 +111,6 @@ export default function EditEmployeePage({
     e.preventDefault();
     setIsLoading(true);
     setError("");
-
-    // Validate numeric fields
-    if (
-      Number(formData.maxCL) < 0 ||
-      Number(formData.usedCL) < 0 ||
-      Number(formData.maxSL) < 0 ||
-      Number(formData.usedSL) < 0 ||
-      Number(formData.maxPL) < 0 ||
-      Number(formData.usedPL) < 0 ||
-      Number(formData.salary) < 0
-    ) {
-      setError("Numeric fields cannot be negative");
-      setIsLoading(false);
-      return;
-    }
 
     try {
       const res = await fetch(`/api/hr/users/${userId}`, {
@@ -163,13 +127,6 @@ export default function EditEmployeePage({
           dateOfJoining: formData.dateOfJoining
             ? new Date(formData.dateOfJoining)
             : null,
-          salary: formData.salary !== "" ? parseFloat(formData.salary) : null,
-          maxCL: Number(formData.maxCL),
-          usedCL: Number(formData.usedCL),
-          maxSL: Number(formData.maxSL),
-          usedSL: Number(formData.usedSL),
-          maxPL: Number(formData.maxPL),
-          usedPL: Number(formData.usedPL),
         }),
       });
 
@@ -187,7 +144,7 @@ export default function EditEmployeePage({
     }
   };
 
-  const handleInputChange = (field: string, value: string | boolean | number) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -339,7 +296,7 @@ export default function EditEmployeePage({
                 />
               </div>
 
-              {/* Date of Joining, Salary */}
+              {/* Date of Joining */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="dateOfJoining">Date of Joining</Label>
@@ -351,93 +308,14 @@ export default function EditEmployeePage({
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="salary">Salary</Label>
-                  <Input
-                    id="salary"
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    placeholder="Enter salary"
-                    value={formData.salary}
-                    onChange={(e) => handleInputChange("salary", e.target.value)}
+                {/* Active Switch */}
+                <div className="flex items-center space-x-2 mt-6 md:mt-0">
+                  <Switch
+                    id="isActive"
+                    checked={formData.isActive}
+                    onCheckedChange={(checked) => handleInputChange("isActive", checked)}
                   />
-                </div>
-              </div>
-
-              {/* Active Switch */}
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="isActive"
-                  checked={formData.isActive}
-                  onCheckedChange={(checked) => handleInputChange("isActive", checked)}
-                />
-                <Label htmlFor="isActive">Active Employee</Label>
-              </div>
-
-              {/* Leave Balances */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="maxCL">Max Casual Leaves</Label>
-                  <Input
-                    id="maxCL"
-                    type="number"
-                    min={0}
-                    value={formData.maxCL}
-                    onChange={(e) => handleInputChange("maxCL", Number(e.target.value))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="usedCL">Used Casual Leaves</Label>
-                  <Input
-                    id="usedCL"
-                    type="number"
-                    min={0}
-                    value={formData.usedCL}
-                    onChange={(e) => handleInputChange("usedCL", Number(e.target.value))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="maxSL">Max Sick Leaves</Label>
-                  <Input
-                    id="maxSL"
-                    type="number"
-                    min={0}
-                    value={formData.maxSL}
-                    onChange={(e) => handleInputChange("maxSL", Number(e.target.value))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="usedSL">Used Sick Leaves</Label>
-                  <Input
-                    id="usedSL"
-                    type="number"
-                    min={0}
-                    value={formData.usedSL}
-                    onChange={(e) => handleInputChange("usedSL", Number(e.target.value))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="maxPL">Max Paid Leaves</Label>
-                  <Input
-                    id="maxPL"
-                    type="number"
-                    min={0}
-                    value={formData.maxPL}
-                    onChange={(e) => handleInputChange("maxPL", Number(e.target.value))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="usedPL">Used Paid Leaves</Label>
-                  <Input
-                    id="usedPL"
-                    type="number"
-                    min={0}
-                    value={formData.usedPL}
-                    onChange={(e) => handleInputChange("usedPL", Number(e.target.value))}
-                  />
+                  <Label htmlFor="isActive">Active Employee</Label>
                 </div>
               </div>
 

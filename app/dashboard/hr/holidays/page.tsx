@@ -1,6 +1,8 @@
 "use client";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useState, useEffect } from "react";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
 interface Holiday {
   id: string;
@@ -44,9 +46,7 @@ export default function HolidayCalendar() {
   const deleteHoliday = async (id: string) => {
     if (!confirm("Are you sure you want to delete this holiday?")) return;
     try {
-      await fetch(`/api/holidays/${id}`, {
-        method: "DELETE",
-      });
+      await fetch(`/api/holidays/${id}`, { method: "DELETE" });
       fetchHolidays();
     } catch (error) {
       console.error("Error deleting holiday:", error);
@@ -79,48 +79,49 @@ export default function HolidayCalendar() {
               onChange={(e) => setDate(e.target.value)}
               className="border p-2 rounded-md"
             />
-            <button
-              onClick={addHoliday}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
-            >
-              Add
-            </button>
+            <Button onClick={addHoliday}>Add</Button>
           </div>
         </div>
 
-        {/* Holiday List */}
-        <div>
-          <h2 className="text-lg font-semibold mb-3">Upcoming Holidays</h2>
-          {holidays.length === 0 ? (
-            <p className="text-gray-500">No holidays found.</p>
-          ) : (
-            <ul className="space-y-2">
-              {holidays.map((h) => (
-                <li
-                  key={h.id}
-                  className="flex justify-between items-center border-b pb-2"
-                >
-                  <div>
-                    <span className="font-medium">{h.name}</span>{" "}
-                    <span className="text-gray-600">
-                      {new Date(h.date).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => deleteHoliday(h.id)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm"
-                  >
-                    Delete
-                  </button>
-                </li>
+        {/* Holiday Table */}
+        {holidays.length === 0 ? (
+          <p className="text-gray-500">No holidays found.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>#</TableHead>
+                <TableHead>Holiday Name</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {holidays.map((h, index) => (
+                <TableRow key={h.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{h.name}</TableCell>
+                  <TableCell>
+                    {new Date(h.date).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => deleteHoliday(h.id)}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
               ))}
-            </ul>
-          )}
-        </div>
+            </TableBody>
+          </Table>
+        )}
       </div>
     </DashboardLayout>
   );

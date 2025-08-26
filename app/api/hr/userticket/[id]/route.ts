@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../lib/prisma";
 import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // Update Ticket (status/priority)
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user || session.user.role !== "HR") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -15,6 +16,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const updatedTicket = await prisma.supportTicket.update({
       where: { id: params.id },
       data: { status, priority },
+      include: {
+        user: true
+      }
     });
 
     return NextResponse.json(updatedTicket);

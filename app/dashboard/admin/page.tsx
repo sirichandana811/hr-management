@@ -2,19 +2,19 @@ import { requireRole } from "@/lib/auth-utils"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { prisma } from "@/lib/prisma"
-import { Users, BookOpen, HelpCircle, TrendingUp } from "lucide-react"
+import { Users, HelpCircle, TrendingUp, CalendarCheck, ClipboardCheck, FileText } from "lucide-react"
 import Link from "next/link"
+
 async function getAdminStats() {
-  const [totalUsers, totalCourses, openTickets, recentUsers] = await Promise.all([
+  const [totalUsers, openTickets, recentUsers] = await Promise.all([
     prisma.user.count(),
-    prisma.course.count(),
     prisma.SupportTicket.count({
       where: { status: { in: ["OPEN", "IN_PROGRESS"] } },
     }),
     prisma.user.count({
       where: {
         createdAt: {
-          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
         },
       },
     }),
@@ -29,7 +29,6 @@ async function getAdminStats() {
 
   return {
     totalUsers,
-    totalCourses,
     openTickets,
     recentUsers,
     usersByRole,
@@ -58,7 +57,7 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -72,23 +71,14 @@ export default async function AdminDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalCourses}</div>
-              <p className="text-xs text-muted-foreground">Available courses</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Open Tickets</CardTitle>
               <HelpCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.openTickets}</div>
-              <Link href="/dashboard/support-ticket" className="text-xs text-muted-foreground">Pending support tickets</Link>
+              <Link href="/dashboard/support-ticket" className="text-xs text-muted-foreground">
+                Pending support tickets
+              </Link>
             </CardContent>
           </Card>
 
@@ -104,7 +94,58 @@ export default async function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Users by Role */}
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Link href="/dashboard/admin/users">
+            <Card className="hover:bg-gray-50 cursor-pointer">
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>Add, edit, or remove users</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Users className="h-6 w-6 text-blue-500" />
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/admin/leave-management">
+            <Card className="hover:bg-gray-50 cursor-pointer">
+              <CardHeader>
+                <CardTitle>Leave Management</CardTitle>
+                <CardDescription>Manage employee leaves</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CalendarCheck className="h-6 w-6 text-green-500" />
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/admin/attendance">
+            <Card className="hover:bg-gray-50 cursor-pointer">
+              <CardHeader>
+                <CardTitle>Attendance</CardTitle>
+                <CardDescription>Track employee attendance</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ClipboardCheck className="h-6 w-6 text-yellow-500" />
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dashboard/support-ticket">
+            <Card className="hover:bg-gray-50 cursor-pointer">
+              <CardHeader>
+                <CardTitle>Ticket Management</CardTitle>
+                <CardDescription>View and resolve support tickets</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FileText className="h-6 w-6 text-red-500" />
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
+        {/* Users by Role (moved to bottom) */}
         <Card>
           <CardHeader>
             <CardTitle>Users by Role</CardTitle>
@@ -123,22 +164,6 @@ export default async function AdminDashboard() {
                   <span className="text-sm text-gray-600">{roleGroup._count.role}</span>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common administrative tasks</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                <h3 className="font-medium">Manage Users</h3>
-                <p className="text-sm text-gray-600">Add, edit, or remove user accounts</p>
-              </div>
             </div>
           </CardContent>
         </Card>

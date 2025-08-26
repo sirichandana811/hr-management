@@ -1,6 +1,7 @@
 "use client";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useState, useEffect } from "react";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 
 interface Holiday {
   id: string;
@@ -10,8 +11,6 @@ interface Holiday {
 
 export default function HolidayCalendar() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
-  const [name, setName] = useState("");
-  const [date, setDate] = useState("");
 
   const fetchHolidays = async () => {
     try {
@@ -21,6 +20,7 @@ export default function HolidayCalendar() {
       console.error("Error fetching holidays:", error);
     }
   };
+
   useEffect(() => {
     fetchHolidays();
   }, []);
@@ -30,37 +30,34 @@ export default function HolidayCalendar() {
       <div className="p-6 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold mb-4">Holiday Calendar</h1>
 
-        {/* Add Holiday Form */}
-        
-
-        {/* Holiday List */}
-        <div>
-          <h2 className="text-lg font-semibold mb-3">Upcoming Holidays</h2>
-          {holidays.length === 0 ? (
-            <p className="text-gray-500">No holidays found.</p>
-          ) : (
-            <ul className="space-y-2">
-              {holidays.map((h) => (
-                <li
-                  key={h.id}
-                  className="flex justify-between items-center border-b pb-2"
-                >
-                  <div>
-                    <span className="font-medium">{h.name}</span>{" "}
-                    <span className="text-gray-600">
-                      {new Date(h.date).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                 
-                </li>
+        {holidays.length === 0 ? (
+          <p className="text-gray-500">No holidays found.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>#</TableHead>
+                <TableHead>Holiday Name</TableHead>
+                <TableHead>Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {holidays.map((h, index) => (
+                <TableRow key={h.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{h.name}</TableCell>
+                  <TableCell>
+                    {new Date(h.date).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </TableCell>
+                </TableRow>
               ))}
-            </ul>
-          )}
-        </div>
+            </TableBody>
+          </Table>
+        )}
       </div>
     </DashboardLayout>
   );

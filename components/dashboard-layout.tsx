@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Users, BookOpen, FileText, HelpCircle, Settings, LogOut, Home, UserCheck } from "lucide-react"
+import LeaveHistoryPage from "@/app/dashboard/teacher/leaves/history/page"
+import { text } from "stream/consumers"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -55,35 +57,34 @@ useEffect(() => {
         return [
           ...baseItems,
           { icon: Users, label: "User Management", href: "/dashboard/admin/users" },
-         
+          { icon: UserCheck, label: "Attendance", href: "/dashboard/admin/attendance" },
           { icon: HelpCircle, label: "Support Tickets", href: "/dashboard/admin/ticket" },
+          { icon: FileText, label: "Leave Management", href: "/dashboard/admin/leave-management" },
+          { icon: BookOpen, label: "Teacher Log", href: "/dashboard/teacher-log-view" },
         ]
       case "HR":
         return [
           ...baseItems,
           { icon: Users, label: "Employees", href: "/dashboard/hr/employees/users" },
-          { icon: UserCheck, label: "Payroll", href: "/dashboard/hr/payroll" },
           { icon: FileText, label: "Reviews", href: "/dashboard/hr/reviews" },
          { icon: FileText, label: "Leave Requests", href: "/dashboard/hr/leaves" },
-         { icon: FileText, label: "Tickets", href: "/dashboard/hr/support-ticket" }
         ]
       case "TEACHER":
         return [
           ...baseItems,
-          { icon: BookOpen, label: "My Courses", href: "/dashboard/teacher/courses" },
-          { icon: BookOpen, label: "Payroll", href: "/dashboard/payroll" },
+          { icon: BookOpen, label: "My Topics", href: "/dashboard/teacher/teacher-log/view" },
           { icon: FileText, label: "Reviews", href: "/dashboard/reviews" },
-          { icon: FileText, label: "Leave Requests", href: "/dashboard/leaves/history" },
-        
+          { icon: FileText, label: "Leave Requests", href: "/dashboard/teacher/leaves/history" },
+          { icon: UserCheck, label: "Attendance", href: "/dashboard/teacher/attendance" },
         ]
-      case "CONTENT_CREATOR":
+     /* case "CONTENT_CREATOR":
         return [
           ...baseItems,
           { icon: BookOpen, label: "Payroll", href: "/dashboard/payroll" },
           { icon: FileText, label: "Reviews", href: "/dashboard/reviews" },
           { icon: FileText, label: "Leave Requests", href: "/dashboard/leaves/history" },
 
-        ]
+        ]*/
       /*case "SUPPORT_STAFF":
         return [
           ...baseItems,

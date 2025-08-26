@@ -11,6 +11,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       data: {
         ...(status && { status }),
         ...(priority && { priority }),
+        
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true } }, // ✅ keep user info
       },
     });
 

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, User, Lock } from "lucide-react";
+import { Loader2, User, Lock, Edit } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 interface UserProfile {
@@ -43,6 +43,7 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isEditing, setIsEditing] = useState(false); // New state to toggle edit mode
 
   useEffect(() => {
     fetchProfile();
@@ -90,7 +91,9 @@ export default function ProfilePage() {
       }
 
       setSuccess("Profile updated successfully");
+      setIsEditing(false); // Exit edit mode after saving
       await update();
+      fetchProfile(); // Refresh profile
     } catch (error) {
       setError("An error occurred. Please try again.");
     } finally {
@@ -149,7 +152,19 @@ export default function ProfilePage() {
   return (
     <DashboardLayout title="Profile">
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Profile Settings</h1>
+        <h1 className="text-3xl font-bold flex items-center">
+          Profile Settings
+          {!isEditing && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="ml-4"
+              onClick={() => setIsEditing(true)}
+            >
+              <Edit className="mr-1 h-4 w-4" /> Edit
+            </Button>
+          )}
+        </h1>
 
         {error && (
           <Alert variant="destructive">
@@ -170,7 +185,7 @@ export default function ProfilePage() {
                 <User className="mr-2 h-5 w-5" />
                 Profile Information
               </CardTitle>
-              <CardDescription>Update your personal information</CardDescription>
+              <CardDescription>View and update your personal information</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleProfileSubmit} className="space-y-4">
@@ -180,6 +195,7 @@ export default function ProfilePage() {
                     <Input
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      disabled={!isEditing}
                     />
                   </div>
                   <div>
@@ -188,6 +204,7 @@ export default function ProfilePage() {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      disabled={!isEditing}
                     />
                   </div>
                 </div>
@@ -197,6 +214,7 @@ export default function ProfilePage() {
                   <Input
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    disabled={!isEditing}
                   />
                 </div>
 
@@ -206,6 +224,7 @@ export default function ProfilePage() {
                     <Input
                       value={formData.phoneNumber}
                       onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                      disabled={!isEditing}
                     />
                   </div>
                   <div>
@@ -213,6 +232,7 @@ export default function ProfilePage() {
                     <Input
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      disabled={!isEditing}
                     />
                   </div>
                 </div>
@@ -242,10 +262,12 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Update Profile
-                </Button>
+                {isEditing && (
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save Changes
+                  </Button>
+                )}
               </form>
             </CardContent>
           </Card>

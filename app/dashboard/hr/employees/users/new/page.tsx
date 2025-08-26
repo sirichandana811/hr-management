@@ -26,11 +26,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 const roleOptions = [
-  { value: "HR", label: "Human Resources" },
   { value: "TEACHER", label: "Teacher" },
-  { value: "CONTENT_CREATOR", label: "Content Creator" },
-  { value: "SUPPORT_STAFF", label: "Support Staff" },
-  { value: "EMPLOYEE", label: "Employee" },
 ];
 
 export default function NewUserPage() {
@@ -45,8 +41,6 @@ export default function NewUserPage() {
     phoneNumber: "",
     address: "",
     dateOfJoining: "",
-    salary: "",
-    image: "",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -61,14 +55,12 @@ export default function NewUserPage() {
     setError("");
 
     try {
-      // Prepare data with correct types for date and salary
       const payload = {
         ...formData,
         dateOfJoining: formData.dateOfJoining || undefined,
-        salary: formData.salary ? parseFloat(formData.salary) : undefined,
       };
 
-      const res = await fetch("/api/admin/users/newUser", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -82,7 +74,7 @@ export default function NewUserPage() {
         return;
       }
 
-      router.push("/dashboard/admin/users?message=User created successfully");
+      router.push("/dashboard/hr/employees/users?message=User created successfully");
     } catch {
       setError("An error occurred. Please try again.");
     } finally {
@@ -95,7 +87,7 @@ export default function NewUserPage() {
       <div className="space-y-6 max-w-3xl mx-auto">
         <div className="flex items-center space-x-4 mb-6">
           <Button variant="outline" size="sm" asChild>
-            <Link href="/dashboard/admin/users">
+            <Link href="/dashboard/hr/employees">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Users
             </Link>
@@ -194,7 +186,7 @@ export default function NewUserPage() {
               {/* Employee ID, Phone Number */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="employeeId">Employee ID</Label>
+                  <Label htmlFor="employeeId">Employee ID *</Label>
                   <Input
                     id="employeeId"
                     type="text"
@@ -234,32 +226,6 @@ export default function NewUserPage() {
                     type="date"
                     value={formData.dateOfJoining}
                     onChange={(e) => handleInputChange("dateOfJoining", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Salary, Image URL */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="salary">Salary</Label>
-                  <Input
-                    id="salary"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="Salary"
-                    value={formData.salary}
-                    onChange={(e) => handleInputChange("salary", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="image">Image URL</Label>
-                  <Input
-                    id="image"
-                    type="text"
-                    placeholder="Image URL"
-                    value={formData.image}
-                    onChange={(e) => handleInputChange("image", e.target.value)}
                   />
                 </div>
               </div>

@@ -26,10 +26,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 const roleOptions = [
+  { value: "ADMIN", label: "Administrator" },
   { value: "HR", label: "Human Resources" },
   { value: "TEACHER", label: "Teacher" },
-  { value: "CONTENT_CREATOR", label: "Content Creator" },
-  
 ];
 
 export default function NewUserPage() {
@@ -44,8 +43,6 @@ export default function NewUserPage() {
     phoneNumber: "",
     address: "",
     dateOfJoining: "",
-    salary: "",
-    image: "",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -60,14 +57,12 @@ export default function NewUserPage() {
     setError("");
 
     try {
-      // Prepare data with correct types for date and salary
       const payload = {
         ...formData,
         dateOfJoining: formData.dateOfJoining || undefined,
-        salary: formData.salary ? parseFloat(formData.salary) : undefined,
       };
 
-      const res = await fetch("/api/admin/users/newUser", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -193,7 +188,7 @@ export default function NewUserPage() {
               {/* Employee ID, Phone Number */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="employeeId">Employee ID</Label>
+                  <Label htmlFor="employeeId">Employee ID *</Label>
                   <Input
                     id="employeeId"
                     type="text"
@@ -233,32 +228,6 @@ export default function NewUserPage() {
                     type="date"
                     value={formData.dateOfJoining}
                     onChange={(e) => handleInputChange("dateOfJoining", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Salary, Image URL */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="salary">Salary</Label>
-                  <Input
-                    id="salary"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="Salary"
-                    value={formData.salary}
-                    onChange={(e) => handleInputChange("salary", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="image">Image URL</Label>
-                  <Input
-                    id="image"
-                    type="text"
-                    placeholder="Image URL"
-                    value={formData.image}
-                    onChange={(e) => handleInputChange("image", e.target.value)}
                   />
                 </div>
               </div>

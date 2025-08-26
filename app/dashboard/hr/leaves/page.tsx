@@ -1,186 +1,119 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
-interface Leave {
+type Leave = {
   id: string;
   userId: string;
   userName: string;
-  userEmail: string;
-  type: string;
+  leaveTypeId: string;
+  leaveTypeName: string;
   startDate: string;
   endDate: string;
-  reason: string;
+  days: number;
   status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
-}
+  reason?: string;
+};
 
-export default function HrLeaveManagementPage() {
+export default function HRLeaveManagementPage() {
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const router = useRouter();
+  const [message, setMessage] = useState<string | null>(null);
 
   const fetchLeaves = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/leaves/all", { method: "GET" });
+      const res = await fetch("/api/hr/leaves");
       const data = await res.json();
       setLeaves(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      setLeaves([]);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
     fetchLeaves();
   }, []);
 
-  const handleAction = async (leaveId: string, action: "approve" | "reject") => {
-    setProcessingId(leaveId);
+  const handleAction = async (leaveId: string, action: "APPROVE" | "REJECT" | "CANCEL") => {
     try {
-      const res = await fetch("/api/leaves/handle", {
-        method: "POST",
+      const res = await fetch("/api/hr/leaves/action", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ leaveId, action }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        alert(data.error || "Failed to process leave");
-      } else {
-        alert(data.message);
+      if (!res.ok) setMessage(data.error || "Something went wrong");
+      else {
+        setMessage(`Leave ${action.toLowerCase()}d successfully`);
         fetchLeaves();
       }
-    } catch (e) {
-      alert("Server error");
-    } finally {
-      setProcessingId(null);
+    } catch (err) {
+      console.error(err);
+      setMessage("Something went wrong");
     }
   };
-
-  const handleCancelApproved = async (leaveId: string) => {
-    if (!confirm("Cancel this approved leave?")) return;
-    setProcessingId(leaveId);
-    try {
-      const res = await fetch("/api/leaves/cancel", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leaveId }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.error || "Failed to cancel leave");
-      } else {
-        alert(data.message || "Leave canceled");
-        fetchLeaves();
-      }
-    } catch (e) {
-      alert("Server error");
-    } finally {
-      setProcessingId(null);
-    }
-  };
-
-  const filteredLeaves = leaves.filter((leave) => {
-    const search = searchTerm.toLowerCase();
-    return (
-      leave.userName.toLowerCase().includes(search) ||
-      leave.userEmail.toLowerCase().includes(search) ||
-      leave.type.toLowerCase().includes(search) ||
-      leave.status.toLowerCase().includes(search)
-    );
-  });
-
-  if (loading) return <p>Loading leave requests...</p>;
-  if (leaves.length === 0) return <p>No leave requests found.</p>;
 
   return (
-    <DashboardLayout title="HR DASHBOARD">
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Leave Requests & History</h1>
-          <button
-            onClick={() => router.back()}
-            className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
-          >
-            Back
-          </button>
-        </div>
-
-        {/* Search box */}
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Search by name, email, type, or status..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="border border-gray-300 px-3 py-2 rounded w-full md:w-1/3"
-          />
-        </div>
-
-        <table className="w-full border border-gray-300 border-collapse">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="border p-2">User</th>
-              <th className="border p-2">Email</th>
-              <th className="border p-2">Type</th>
-              <th className="border p-2">Start Date</th>
-              <th className="border p-2">End Date</th>
-              <th className="border p-2">Reason</th>
-              <th className="border p-2">Status</th>
-              <th className="border p-2">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredLeaves.map((leave) => (
-              <tr key={leave.id}>
-                <td className="border p-2">{leave.userName}</td>
-                <td className="border p-2">{leave.userEmail}</td>
-                <td className="border p-2">{leave.type}</td>
-                <td className="border p-2">{new Date(leave.startDate).toLocaleDateString()}</td>
-                <td className="border p-2">{new Date(leave.endDate).toLocaleDateString()}</td>
-                <td className="border p-2">{leave.reason}</td>
-                <td className="border p-2">{leave.status}</td>
-                <td className="border p-2 flex gap-2">
-                  {leave.status === "PENDING" && (
-                    <>
-                      <button
-                        disabled={processingId === leave.id}
-                        onClick={() => handleAction(leave.id, "approve")}
-                        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        disabled={processingId === leave.id}
-                        onClick={() => handleAction(leave.id, "reject")}
-                        className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 disabled:opacity-50"
-                      >
-                        Reject
-                      </button>
-                    </>
-                  )}
-                  {leave.status === "APPROVED" && (
-                    <button
-                      disabled={processingId === leave.id}
-                      onClick={() => handleCancelApproved(leave.id)}
-                      className="bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700 disabled:opacity-50"
-                    >
-                      Cancel
-                    </button>
-                  )}
-                  {(leave.status === "REJECTED" || leave.status === "CANCELLED") && (
-                    <span className="text-gray-500">-</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <DashboardLayout title="HR Leave Management">
+      <div className="max-w-6xl mx-auto mt-10">
+        {message && <p className="text-center text-red-600 mb-4">{message}</p>}
+        {loading ? (
+          <p>Loading...</p>
+        ) : leaves.length === 0 ? (
+          <p>No leaves found</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Employee</TableHead>
+                <TableHead>Leave Type</TableHead>
+                <TableHead>From</TableHead>
+                <TableHead>To</TableHead>
+                <TableHead>Days</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Reason</TableHead>
+                <TableHead>Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.isArray(leaves) &&
+                leaves.map((leave) => (
+                  <TableRow key={leave.id}>
+                    <TableCell>{leave.userName}</TableCell>
+                    <TableCell>{leave.leaveTypeName}</TableCell>
+                    <TableCell>{new Date(leave.startDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(leave.endDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{leave.days}</TableCell>
+                    <TableCell>{leave.status}</TableCell>
+                    <TableCell>{leave.reason || "-"}</TableCell>
+                    <TableCell className="space-x-2">
+                      {leave.status === "PENDING" && (
+                        <>
+                          <Button size="sm" onClick={() => handleAction(leave.id, "APPROVE")}>
+                            Approve
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleAction(leave.id, "REJECT")}>
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                      {leave.status === "APPROVED" && (
+                        <Button size="sm" variant="destructive" onClick={() => handleAction(leave.id, "CANCEL")}>
+                          Cancel
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </DashboardLayout>
   );

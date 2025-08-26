@@ -1,26 +1,63 @@
-// app/api/leaves/history/route.ts
-import { getServerSession } from "next-auth";
-import  {authOptions} from "@/lib/auth";
-import { prisma } from "../../../../lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
-export async function GET() {
+// GET teacher leave history
+export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const url = new URL(req.url);
+    const userId = url.searchParams.get("userId");
+    if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
 
-    if (!session?.user?.id) {
-      return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401 });
-    }
-
-    const userId = session.user.id;
-
-    const leaves = await prisma.leave.findMany({
+    const leaves = await prisma.leaveRequest.findMany({
       where: { userId },
-      orderBy: { startDate: "desc" },
+      orderBy: { createdAt: "desc" },
     });
 
-    return new Response(JSON.stringify(leaves), { status: 200 });
-  } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ error: "Failed to fetch leave history" }), { status: 500 });
+    return NextResponse.json(leaves);
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+  }
+}
+
+// PATCH to cancel a leave
+export async function PATCH(req: Request) {
+  try {
+    const body = await req.json();
+    const { leaveId, userId } = body;
+
+    if (!leaveId || !userId)
+      return NextResponse.json({ error: "Missing leaveId or userId" }, { status: 400 });
+
+    const leave = await prisma.leaveRequest.findUnique({ where: { id: leaveId } });
+    if (!leave) return NextResponse.json({ error: "Leave not found" }, { status: 404 });
+    if (leave.status !== "PENDING")
+      return NextResponse.json({ error: "Only pending leaves can be cancelled" }, { status: 400 });
+
+    // Update leave status to CANCELLED
+    await prisma.leaveRequest.update({
+      where: { id: leaveId },
+      data: { status: "CANCELLED" },
+    });
+
+    // Restore balance
+    const balance = await prisma.leaveBalance.findFirst({
+      where: { userId, leaveTypeId: leave.leaveTypeId },
+    });
+
+    if (balance) {
+      await prisma.leaveBalance.update({
+        where: { id: balance.id },
+        data: {
+          used: balance.used - leave.days,
+          remaining: balance.remaining + leave.days,
+        },
+      });
+    }
+
+    return NextResponse.json({ message: "Leave cancelled successfully" });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

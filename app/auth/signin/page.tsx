@@ -104,7 +104,6 @@ export default function SignInPage() {
                 <option value="ADMIN">Admin</option>
                 <option value="HR">HR</option>
                 <option value="TEACHER">Teacher</option>
-                <option value="CONTENT_CREATOR">Content Creator</option>
                
               </select>
             </div>

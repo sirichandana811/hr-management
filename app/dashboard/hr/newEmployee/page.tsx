@@ -26,11 +26,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 const roleOptions = [
-  { value: "HR", label: "Human Resources" },
+
   { value: "TEACHER", label: "Teacher" },
-  { value: "CONTENT_CREATOR", label: "Content Creator" },
-  
- 
 ];
 
 export default function NewUserPage() {
@@ -42,7 +39,7 @@ export default function NewUserPage() {
     role: "",
     department: "",
     employeeId: "",
-    phoneNumber: "",
+    phoneNumber: 0,
     address: "",
     dateOfJoining: "",
     salary: "",
@@ -82,7 +79,7 @@ export default function NewUserPage() {
         return;
       }
 
-      router.push("/dashboard/admin/users?message=User created successfully");
+      router.push("/dashboard/hr/users?message=User created successfully");
     } catch {
       setError("An error occurred. Please try again.");
     } finally {
@@ -194,7 +191,7 @@ export default function NewUserPage() {
               {/* Employee ID, Phone Number */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="employeeId">Employee ID</Label>
+                  <Label htmlFor="employeeId">Employee ID *</Label>
                   <Input
                     id="employeeId"
                     type="text"
@@ -240,19 +237,7 @@ export default function NewUserPage() {
 
               {/* Salary, Image URL */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="salary">Salary</Label>
-                  <Input
-                    id="salary"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="Salary"
-                    value={formData.salary}
-                    onChange={(e) => handleInputChange("salary", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
+                 <div className="space-y-2">
                   <Label htmlFor="image">Image URL</Label>
                   <Input
                     id="image"

@@ -1,12 +1,10 @@
-
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// GET /api/hr/users/[userid]
 export async function GET(
   req: Request,
-  { params }: { params: { userid: string } } // must match folder name
+  { params }: { params: { userid: string } }
 ) {
   const { userid } = params;
 
@@ -16,7 +14,7 @@ export async function GET(
 
   try {
     const user = await prisma.user.findUnique({
-      where: { id: userid }, // Prisma needs a valid string ID
+      where: { id: userid },
       select: {
         id: true,
         name: true,
@@ -27,14 +25,7 @@ export async function GET(
         phoneNumber: true,
         address: true,
         dateOfJoining: true,
-        salary: true,
         isActive: true,
-        maxCL: true,
-        usedCL: true,
-        maxSL: true,
-        usedSL: true,
-        maxPL: true,
-        usedPL: true,
       },
     });
 
@@ -49,9 +40,7 @@ export async function GET(
   }
 }
 
-// PATCH /api/hr/users/[userId]
-// app/api/hr/users/[userid]/route.ts
-
+// PATCH /api/hr/users/[userid]
 export async function PATCH(
   req: Request,
   { params }: { params: { userid: string } }
@@ -64,7 +53,7 @@ export async function PATCH(
 
   const body = await req.json();
 
-  // Only allow fields HR can update
+  // Only allow fields HR can update (salary and leave fields removed)
   const allowedFields = [
     "name",
     "email",
@@ -72,14 +61,7 @@ export async function PATCH(
     "phoneNumber",
     "address",
     "dateOfJoining",
-    "salary",
     "isActive",
-    "maxCL",
-    "usedCL",
-    "maxSL",
-    "usedSL",
-    "maxPL",
-    "usedPL",
   ];
 
   const data: any = {};
@@ -99,23 +81,19 @@ export async function PATCH(
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-// app/api/hr/users/[userid]/route.ts
 
-// app/api/hr/users/[userid]/route.ts
-
-
+// DELETE /api/hr/users/[userid]
 export async function DELETE(
   req: Request,
   { params }: { params: { userid: string } }
 ) {
-  const { userid } = params;
+  const { userid } = await params;
 
   if (!userid) {
     return NextResponse.json({ error: "User ID is required" }, { status: 400 });
   }
 
   try {
-    // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: { id: userid },
     });
@@ -124,17 +102,15 @@ export async function DELETE(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Delete all leave records related to this user
-    await prisma.leave.deleteMany({
-      where: { userId: userid },
-    });
+    // Delete related records if any (leave and payroll are optional, remove if not used)
+   
 
-    // Now delete the user
+    // Delete the user
     await prisma.user.delete({
       where: { id: userid },
     });
 
-    return NextResponse.json({ message: "User and related leaves deleted successfully" });
+    return NextResponse.json({ message: "User deleted successfully" });
   } catch (error) {
     console.error("Delete user error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

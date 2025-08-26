@@ -30,6 +30,7 @@ export default function AdminTicketPage() {
       setTickets((prev) =>
         prev.map((t) => (t.id === id ? updated : t))
       );
+      
     } catch (err) {
       console.error(err);
       alert("Failed to update ticket");

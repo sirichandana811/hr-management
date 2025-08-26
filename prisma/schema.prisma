@@ -47,33 +47,29 @@ model User {
   role          UserRole?
   department    String?
   employeeId    String?   @unique
-  phoneNumber   Int?
+  phoneNumber   String?
   address       String?
   dateOfJoining DateTime?
-  salary        Float?
+  
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  maxCL         Int       @default(20) // Max Casual Leaves per year
-  usedCL        Int       @default(0) // Casual Leaves used
+                  
+  accounts          Account[]
+  sessions          Session[]
+ 
+  holiday           Holiday[]
 
-  maxSL  Int @default(20) // Max Sick Leaves per year
-  usedSL Int @default(0) // Sick Leaves used
+  supportTickets    SupportTicket[]
+  reviewsGiven      Review[]            @relation("Reviewer")
+  reviewsReceived   Review[]            @relation("Teacher")
+  payroll           Payroll?
+  teachingLogs      TeachingLog[]       @relation("UserTeachingLogs")
+  teacherAttendance TeacherAttendance[] @relation("UserTeacherAttendance")
 
-  maxPL           Int             @default(20) // Max Paid Leaves per year
-  usedPL          Int             @default(0) // Paid Leaves used
-  accounts        Account[]
-  sessions        Session[]
-  leave           leave[]
-  holiday         Holiday[]
-  // Role-specific relations
-  createdCourses  Course[]        @relation("CourseCreator")
-  assignedCourses Course[]        @relation("CourseTeacher")
-  supportTickets  SupportTicket[]
-  reviewsGiven    Review[]   @relation("Reviewer") // by HR
-  reviewsReceived Review[]   @relation("Teacher")  // to Teacher
-  payroll Payroll?
-
+  markedAttendances TeacherAttendance[] @relation("AttendanceMarkedBy")
+  leaveRequests     LeaveRequest[]
+  leaveBalances     LeaveBalance[]
 }
 
 model VerificationToken {
@@ -85,24 +81,6 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-
-model Course {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  description String?
-  subject     String
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isActive    Boolean  @default(true)
-
-  creatorId String @db.ObjectId
-  creator   User   @relation("CourseCreator", fields: [creatorId], references: [id])
-
-  teacherId String? @db.ObjectId
-  teacher   User?   @relation("CourseTeacher", fields: [teacherId], references: [id])
-}
-
 model SupportTicket {
   id          String         @id @default(auto()) @map("_id") @db.ObjectId
   title       String
@@ -111,9 +89,9 @@ model SupportTicket {
   priority    TicketPriority @default(MEDIUM)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
-  
+
   userId String @db.ObjectId
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum UserRole {
@@ -139,17 +117,122 @@ enum TicketPriority {
   URGENT
 }
 
-model leave {
-  id        String      @id @default(auto()) @map("_id") @db.ObjectId
-  user      User        @relation(fields: [userId], references: [id])
-  userId    String      @db.ObjectId
-  type      String
-  status    LeaveStatus @default(PENDING)
-  startDate DateTime
-  endDate   DateTime
-  reason    String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+model Holiday {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  date        DateTime
+  createdById String   @db.ObjectId
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Review {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  reviewerId String @db.ObjectId
+  teacherId  String @db.ObjectId
+
+  rating  Int
+  comment String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reviewer User @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  teacher  User @relation("Teacher", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
+  @@index([reviewerId])
+}
+
+model Payroll {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String @unique
+  basic       Float
+  hra         Float
+  allowances  Float
+  deductions  Float
+  grossSalary Float
+  netSalary   Float
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TeachingLog {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  teacherId String @db.ObjectId
+  teacher   User   @relation("UserTeachingLogs", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  className   String
+  subject     String
+  topic       String
+  description String
+
+  date      DateTime
+  startTime DateTime?
+  endTime   DateTime?
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model TeacherAttendance {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  date      DateTime
+  forenoon  String
+  afternoon String
+
+  teacher   User   @relation("UserTeacherAttendance", fields: [teacherId], references: [id], onDelete: Cascade)
+  teacherId String @db.ObjectId
+
+  markedBy   User?   @relation("AttendanceMarkedBy", fields: [markedById], references: [id], onDelete: Cascade)
+  markedById String? @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teacherId, date], name: "teacherId_date")
+}
+
+model LeaveType {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  limit     Int
+  description String? 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  balances  LeaveBalance[]
+  requests  LeaveRequest[]
+}
+
+model LeaveBalance {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String
+  leaveTypeId   String
+  leaveTypeName String
+  used          Int      @default(0)
+  remaining     Int
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+}
+
+model LeaveRequest {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String
+  leaveTypeId   String
+  leaveTypeName String
+  startDate     DateTime
+  endDate       DateTime
+  days          Int
+  reason        String?
+  status        LeaveStatus @default(PENDING)
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum LeaveStatus {
@@ -157,57 +240,4 @@ enum LeaveStatus {
   APPROVED
   REJECTED
   CANCELLED
-}
-
-model Holiday {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  date        DateTime
-  createdById String   @db.ObjectId
-  createdBy   User     @relation(fields: [createdById], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-model Review {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  reviewerId String   @db.ObjectId  // HR user id
-  teacherId  String   @db.ObjectId  // Teacher user id
-
-  rating     Int
-  comment    String?
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  reviewer   User     @relation("Reviewer", fields: [reviewerId], references: [id])
-  teacher    User     @relation("Teacher",  fields: [teacherId],  references: [id])
-
-  @@index([teacherId])
-  @@index([reviewerId])
-}
-model Article {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  content   String
-  createdAt DateTime @default(now())
-  createdBy String   // User ID of the content creator
-}
-
-model Video {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  url       String   // YouTube/Vimeo/Cloud link
-  createdAt DateTime @default(now())
-  createdBy String   // User ID of the content creator
-}
-model Payroll {
- id          String  @id @map("_id") @default(auto()) @db.ObjectId
-  userId      String  @unique
-  basic       Float
-  hra         Float
-  allowances  Float
-  deductions  Float
-  grossSalary Float
-  netSalary   Float
-  user        User    @relation(fields: [userId], references: [id])
 }

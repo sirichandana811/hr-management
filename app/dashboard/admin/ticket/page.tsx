@@ -34,6 +34,7 @@ export default function AdminTicketPage() {
       console.error(err);
       alert("Failed to update ticket");
     }
+    
   };
 
   if (loading) return <p>Loading tickets...</p>;
