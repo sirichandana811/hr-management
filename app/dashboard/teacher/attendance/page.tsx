@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
@@ -22,21 +22,22 @@ export default function TeacherAttendancePage() {
   const [workingDays, setWorkingDays] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchAttendance() {
-      try {
-        const res = await fetch("/api/teacherattendance");
-        const data = await res.json();
-        setAttendance(data.attendance || []);
-        setWorkingDays(data.workingDays || 0);
-      } catch (err) {
-        console.error("Failed to load attendance", err);
-      } finally {
-        setLoading(false);
-      }
+  const fetchAttendance = useCallback(async () => {
+    try {
+      const res = await fetch("/api/teacherattendance");
+      const data = await res.json();
+      setAttendance(data.attendance ?? []);
+      setWorkingDays(data.workingDays ?? 0);
+    } catch (err) {
+      console.error("Failed to load attendance", err);
+    } finally {
+      setLoading(false);
     }
-    fetchAttendance();
   }, []);
+
+  useEffect(() => {
+    fetchAttendance();
+  }, [fetchAttendance]);
 
   const handleBack = () => {
     if (window.history.length > 1) {
@@ -62,13 +63,16 @@ export default function TeacherAttendancePage() {
               Total Working Days: <span className="font-semibold">{workingDays}</span>
             </p>
           </CardHeader>
+
           <CardContent>
             {loading ? (
               <div className="flex justify-center py-6">
                 <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
               </div>
             ) : attendance.length === 0 ? (
-              <p className="text-gray-500 text-center py-6">No attendance records found.</p>
+              <p className="text-gray-500 text-center py-6">
+                No attendance records found.
+              </p>
             ) : (
               <Table>
                 <TableHeader>
@@ -80,15 +84,13 @@ export default function TeacherAttendancePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {attendance.map((record) => (
-                    <TableRow key={record.id}>
-                      <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
-                      <TableCell>{record.forenoon}</TableCell>
-                      <TableCell>{record.afternoon}</TableCell>
+                  {attendance.map(({ id, date, forenoon, afternoon, markedBy }) => (
+                    <TableRow key={id}>
+                      <TableCell>{new Date(date).toLocaleDateString()}</TableCell>
+                      <TableCell>{forenoon}</TableCell>
+                      <TableCell>{afternoon}</TableCell>
                       <TableCell>
-                        {record.markedBy
-                          ? `${record.markedBy?.name} (${record.markedBy?.email})`
-                          : "System"}
+                        {markedBy ? `${markedBy.name ?? "Unknown"} (${markedBy.email})` : "System"}
                       </TableCell>
                     </TableRow>
                   ))}

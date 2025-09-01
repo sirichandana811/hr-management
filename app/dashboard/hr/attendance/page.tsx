@@ -13,7 +13,6 @@ interface AttendanceRecord {
   date: string;
 }
 
-
 export default function AttendancePage() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -26,38 +25,34 @@ export default function AttendancePage() {
     fetchTeachers();
   }, [selectedDate]); // Reload when date changes
 
-const fetchTeachers = async () => {
-  setLoading(true);
-  try {
-    const res = await fetch("/api/hr/attendance/users?role=teacher");
-    const teacherList: any[] = await res.json();  // use Teacher type
-    setTeachers(teacherList);
+  const fetchTeachers = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/hr/attendance/users?role=teacher");
+      const teacherList: any[] = await res.json();
+      setTeachers(teacherList);
 
-    // Fetch all attendance in parallel
-    const attendanceResponses = await Promise.all(
-      teacherList.map((teacher) =>
-        fetch(`/api/hr/attendance?teacherId=${teacher.id}&date=${selectedDate}`)
-          .then((res) => res.json())
-      )
-    );
+      const attendanceResponses = await Promise.all(
+        teacherList.map((teacher) =>
+          fetch(`/api/hr/attendance?teacherId=${teacher.id}&date=${selectedDate}`).then((res) => res.json())
+        )
+      );
 
-    // Build attendance map
-    const attData: { [key: string]: AttendanceRecord } = {};
-    teacherList.forEach((teacher, index: number) => {
-      const record = attendanceResponses[index];
-      attData[teacher.id] =
-        record && Object.keys(record).length > 0
-          ? record
-          : { forenoon: "", afternoon: "", date: selectedDate };
-    });
+      const attData: { [key: string]: AttendanceRecord } = {};
+      teacherList.forEach((teacher, index: number) => {
+        const record = attendanceResponses[index];
+        attData[teacher.id] =
+          record && Object.keys(record).length > 0
+            ? record
+            : { forenoon: "", afternoon: "", date: selectedDate };
+      });
 
-    setAttendance(attData);
-  } catch (error) {
-    console.error("Error fetching teachers or attendance:", error);
-  }
-  setLoading(false);
-};
-
+      setAttendance(attData);
+    } catch (error) {
+      console.error("Error fetching teachers or attendance:", error);
+    }
+    setLoading(false);
+  };
 
   const handleChange = (teacherId: string, sessionPart: "forenoon" | "afternoon", value: string) => {
     setAttendance((prev) => ({
@@ -66,26 +61,31 @@ const fetchTeachers = async () => {
     }));
   };
 
-  const handleSaveOrUpdate = async (teacherId: string) => {
-    const record = attendance[teacherId];
-    if (!record) return;
-
-    const response = await fetch("/api/hr/attendance", {
-      method: "POST", // Upsert logic in backend
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  // ✅ New function: update all teachers' attendance at once
+  const handleSaveAll = async () => {
+    try {
+      const records = Object.entries(attendance).map(([teacherId, record]) => ({
         teacherId,
         date: selectedDate,
         forenoon: record.forenoon || "Absent",
         afternoon: record.afternoon || "Absent",
         markedById: session?.user.id,
-      }),
-    });
+      }));
 
-    if (response.ok) {
-      alert("Attendance saved/updated!");
-      fetchTeachers(); // Reload attendance
-    } else {
+      const response = await fetch("/api/hr/attendance/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(records),
+      });
+
+      if (response.ok) {
+        alert("All attendance saved/updated!");
+        fetchTeachers();
+      } else {
+        alert("Error saving attendance");
+      }
+    } catch (error) {
+      console.error("Error saving all attendance:", error);
       alert("Error saving attendance");
     }
   };
@@ -101,14 +101,18 @@ const fetchTeachers = async () => {
       <div className="p-6">
         <h1 className="text-xl font-bold mb-4">Mark Teacher Attendance</h1>
 
-        <div className="mb-4">
-          <label className="mr-2 font-semibold">Select Date:</label>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="border rounded p-1"
-          />
+        <div className="mb-4 flex justify-between items-center">
+          <div>
+            <label className="mr-2 font-semibold">Select Date:</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="border rounded p-1"
+            />
+          </div>
+          {/* ✅ Single button to update all teachers */}
+          <Button onClick={handleSaveAll}>Update All</Button>
         </div>
 
         <Table>
@@ -152,8 +156,7 @@ const fetchTeachers = async () => {
                     <option value="Leave">Leave</option>
                   </select>
                 </TableCell>
-                <TableCell className="flex gap-2">
-                  <Button onClick={() => handleSaveOrUpdate(teacher.id)}>Update</Button>
+                <TableCell>
                   <Button variant="outline" onClick={() => handleHistory(teacher.id)}>
                     History
                   </Button>
