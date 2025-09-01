@@ -74,7 +74,7 @@ export default function NewUserPage() {
         return;
       }
 
-      router.push("/dashboard/hr/employees/users?message=User created successfully");
+      router.prefetch("/dashboard/hr/employees/users?message=User created successfully");
     } catch {
       setError("An error occurred. Please try again.");
     } finally {
@@ -87,7 +87,7 @@ export default function NewUserPage() {
       <div className="space-y-6 max-w-3xl mx-auto">
         <div className="flex items-center space-x-4 mb-6">
           <Button variant="outline" size="sm" asChild>
-            <Link href="/dashboard/hr/employees">
+            <Link href="/dashboard/hr/employees/users" prefetch>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Users
             </Link>

@@ -84,12 +84,12 @@ export default function UsersPage() {
           <div className="flex gap-2">
             <Button
               variant="secondary"
-              onClick={() => router.push("/dashboard/hr")}
+              onClick={() => router.prefetch("/dashboard/hr")}
               className="bg-gray-500 hover:bg-gray-600 text-white"
             >
               Back
             </Button>
-            <Link href="/dashboard/hr/employees/users/new" passHref>
+            <Link href="/dashboard/hr/employees/users/new" passHref prefetch>
               <Button>Create New User</Button>
             </Link>
           </div>
@@ -149,7 +149,7 @@ export default function UsersPage() {
                       size="sm"
                       variant="outline"
                       onClick={() =>
-                        router.push(`/dashboard/hr/employees/users/${user.id}/edit`)
+                        router.prefetch(`/dashboard/hr/employees/users/${user.id}/edit`)
                       }
                       title="Edit user"
                     >

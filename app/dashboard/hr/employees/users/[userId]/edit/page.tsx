@@ -136,7 +136,7 @@ export default function EditEmployeePage({
         return;
       }
 
-      router.push("/dashboard/hr/employees/users?message=User updated successfully");
+      router.prefetch("/dashboard/hr/employees/users?message=User updated successfully");
     } catch {
       setError("An error occurred. Please try again.");
     } finally {
@@ -164,7 +164,7 @@ export default function EditEmployeePage({
         <div className="text-center">
           <p className="text-gray-500">User not found</p>
           <Button asChild className="mt-4">
-            <Link href="/dashboard/hr/users">Back to Users</Link>
+            <Link href="/dashboard/hr/users" passHref prefetch>Back to Users</Link>
           </Button>
         </div>
       </DashboardLayout>
@@ -176,7 +176,7 @@ export default function EditEmployeePage({
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
           <Button variant="outline" size="sm" asChild>
-            <Link href="/dashboard/hr/employees/users">
+            <Link href="/dashboard/hr/employees/users" passHref prefetch>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Users
             </Link>

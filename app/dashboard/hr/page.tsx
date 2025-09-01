@@ -156,10 +156,10 @@ export default async function HRDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/employees/users">View All Employees</Link>
+                  <Link href="/dashboard/hr/employees/users" prefetch>View All Employees</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/newEmployee">Add New Employee</Link>
+                  <Link href="/dashboard/hr/newEmployee" prefetch>Add New Employee</Link>
                 </Button>
               </div>
             </CardContent>
@@ -176,13 +176,13 @@ export default async function HRDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/leave-types">Add Leave Type</Link>
+                  <Link href="/dashboard/hr/leave-types" prefetch>Add Leave Type</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/leaves">Leave Requests</Link>
+                  <Link href="/dashboard/hr/leaves" prefetch>Leave Requests</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/holidays">Holiday Calendar</Link>
+                  <Link href="/dashboard/hr/holidays" prefetch>Holiday Calendar</Link>
                 </Button>
               </div>
             </CardContent>
@@ -199,10 +199,10 @@ export default async function HRDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/reviews/new">+ Write review</Link>
+                  <Link href="/dashboard/hr/reviews/new" prefetch>+ Write review</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/reviews">Reviews Summary</Link>
+                  <Link href="/dashboard/hr/reviews" prefetch>Reviews Summary</Link>
                 </Button>
               </div>
             </CardContent>
@@ -219,10 +219,10 @@ export default async function HRDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/attendance">View Attendance</Link>
+                  <Link href="/dashboard/hr/attendance" prefetch>View Attendance</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/attendance/all">Attendance History</Link>
+                  <Link href="/dashboard/hr/attendance/all" prefetch>Attendance History</Link>
                 </Button>
               </div>
             </CardContent>
@@ -239,13 +239,13 @@ export default async function HRDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/support-ticket">+ Create Ticket</Link>
+                  <Link href="/dashboard/hr/support-ticket" prefetch>+ Create Ticket</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/support-ticket/view">View All Tickets</Link>
+                  <Link href="/dashboard/hr/support-ticket/view" prefetch>View All Tickets</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/userticket">Resolve Tickets</Link>
+                  <Link href="/dashboard/hr/userticket" prefetch>Resolve Tickets</Link>
                 </Button>
               </div>
             </CardContent>
@@ -262,7 +262,7 @@ export default async function HRDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/teacher-log-view">View All Topic</Link>
+                  <Link href="/dashboard/teacher-log-view" prefetch>View All Topic</Link>
                 </Button>
               </div>
             </CardContent>

@@ -13,6 +13,7 @@ interface AttendanceRecord {
   date: string;
 }
 
+
 export default function AttendancePage() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -25,31 +26,38 @@ export default function AttendancePage() {
     fetchTeachers();
   }, [selectedDate]); // Reload when date changes
 
-  const fetchTeachers = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/hr/attendance/users?role=teacher");
-      const data = await res.json();
-      setTeachers(data);
+const fetchTeachers = async () => {
+  setLoading(true);
+  try {
+    const res = await fetch("/api/hr/attendance/users?role=teacher");
+    const teacherList: any[] = await res.json();  // use Teacher type
+    setTeachers(teacherList);
 
-      // Fetch existing attendance for all teachers on selected date
-      const attData: { [key: string]: AttendanceRecord } = {};
-      for (const teacher of data) {
-        const attRes = await fetch(`/api/hr/attendance?teacherId=${teacher.id}&date=${selectedDate}`);
-        const record = await attRes.json();
-        if (record && Object.keys(record).length > 0) {
-          attData[teacher.id] = record;
-        } else {
-          // Initialize with empty values
-          attData[teacher.id] = { forenoon: "", afternoon: "", date: selectedDate };
-        }
-      }
-      setAttendance(attData);
-    } catch (error) {
-      console.error("Error fetching teachers or attendance:", error);
-    }
-    setLoading(false);
-  };
+    // Fetch all attendance in parallel
+    const attendanceResponses = await Promise.all(
+      teacherList.map((teacher) =>
+        fetch(`/api/hr/attendance?teacherId=${teacher.id}&date=${selectedDate}`)
+          .then((res) => res.json())
+      )
+    );
+
+    // Build attendance map
+    const attData: { [key: string]: AttendanceRecord } = {};
+    teacherList.forEach((teacher, index: number) => {
+      const record = attendanceResponses[index];
+      attData[teacher.id] =
+        record && Object.keys(record).length > 0
+          ? record
+          : { forenoon: "", afternoon: "", date: selectedDate };
+    });
+
+    setAttendance(attData);
+  } catch (error) {
+    console.error("Error fetching teachers or attendance:", error);
+  }
+  setLoading(false);
+};
+
 
   const handleChange = (teacherId: string, sessionPart: "forenoon" | "afternoon", value: string) => {
     setAttendance((prev) => ({

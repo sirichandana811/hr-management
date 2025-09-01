@@ -63,7 +63,6 @@ export async function GET(req: Request) {
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
-      
       rating: true,
       comment: true,
       createdAt: true,
