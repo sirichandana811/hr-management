@@ -74,7 +74,7 @@ export default function NewUserPage() {
         return;
       }
 
-      router.prefetch("/dashboard/hr/employees/users?message=User created successfully");
+      router.push("/dashboard/hr/employees/users?message=User created successfully");
     } catch {
       setError("An error occurred. Please try again.");
     } finally {

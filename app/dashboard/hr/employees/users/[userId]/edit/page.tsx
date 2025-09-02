@@ -136,7 +136,7 @@ export default function EditEmployeePage({
         return;
       }
 
-      router.prefetch("/dashboard/hr/employees/users?message=User updated successfully");
+      router.push("/dashboard/hr/employees/users?message=User updated successfully");
     } catch {
       setError("An error occurred. Please try again.");
     } finally {
