@@ -22,6 +22,7 @@ export default function HRLeaveManagementPage() {
   const [leaves, setLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [processing, setProcessing] = useState<string | null>(null); // store leaveId being processed
 
   const fetchLeaves = async () => {
     setLoading(true);
@@ -41,6 +42,16 @@ export default function HRLeaveManagementPage() {
   }, []);
 
   const handleAction = async (leaveId: string, action: "APPROVE" | "REJECT" | "CANCEL") => {
+    const confirmMsg =
+      action === "APPROVE"
+        ? "Are you sure you want to approve this leave?"
+        : action === "REJECT"
+        ? "Are you sure you want to reject this leave?"
+        : "Are you sure you want to cancel this leave?";
+
+    if (!window.confirm(confirmMsg)) return;
+
+    setProcessing(leaveId);
     try {
       const res = await fetch("/api/hr/leaves/action", {
         method: "PATCH",
@@ -48,21 +59,25 @@ export default function HRLeaveManagementPage() {
         body: JSON.stringify({ leaveId, action }),
       });
       const data = await res.json();
-      if (!res.ok) setMessage(data.error || "Something went wrong");
-      else {
+      if (!res.ok) {
+        setMessage(data.error || "Something went wrong");
+      } else {
         setMessage(`Leave ${action.toLowerCase()}d successfully`);
         fetchLeaves();
       }
     } catch (err) {
       console.error(err);
       setMessage("Something went wrong");
+    } finally {
+      setProcessing(null);
+      setTimeout(() => setMessage(null), 3000); // auto-clear message after 3s
     }
   };
 
   return (
     <DashboardLayout title="HR Leave Management">
       <div className="max-w-6xl mx-auto mt-10">
-        {message && <p className="text-center text-red-600 mb-4">{message}</p>}
+        {message && <p className="text-center text-blue-600 mb-4">{message}</p>}
         {loading ? (
           <p>Loading...</p>
         ) : leaves.length === 0 ? (
@@ -95,17 +110,31 @@ export default function HRLeaveManagementPage() {
                     <TableCell className="space-x-2">
                       {leave.status === "PENDING" && (
                         <>
-                          <Button size="sm" onClick={() => handleAction(leave.id, "APPROVE")}>
-                            Approve
+                          <Button
+                            size="sm"
+                            disabled={processing === leave.id}
+                            onClick={() => handleAction(leave.id, "APPROVE")}
+                          >
+                            {processing === leave.id ? "Processing..." : "Approve"}
                           </Button>
-                          <Button size="sm" variant="destructive" onClick={() => handleAction(leave.id, "REJECT")}>
-                            Reject
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            disabled={processing === leave.id}
+                            onClick={() => handleAction(leave.id, "REJECT")}
+                          >
+                            {processing === leave.id ? "Processing..." : "Reject"}
                           </Button>
                         </>
                       )}
                       {leave.status === "APPROVED" && (
-                        <Button size="sm" variant="destructive" onClick={() => handleAction(leave.id, "CANCEL")}>
-                          Cancel
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          disabled={processing === leave.id}
+                          onClick={() => handleAction(leave.id, "CANCEL")}
+                        >
+                          {processing === leave.id ? "Processing..." : "Cancel"}
                         </Button>
                       )}
                     </TableCell>
