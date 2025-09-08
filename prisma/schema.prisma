@@ -159,22 +159,27 @@ model Payroll {
 }
 
 model TeachingLog {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  teacherId String @db.ObjectId
-  teacher   User   @relation("UserTeachingLogs", fields: [teacherId], references: [id], onDelete: Cascade)
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  teacherId String   @db.ObjectId
+  teacher   User     @relation("UserTeachingLogs", fields: [teacherId], references: [id], onDelete: Cascade)
 
   className   String
   subject     String
   topic       String
-  description String
+  description String?
 
-  date      DateTime
-  startTime DateTime?
-  endTime   DateTime?
+  date        DateTime
+  startTime   DateTime?
+  endTime     DateTime?
 
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
+  year        String?   // 1st, 2nd, 3rd, 4th year
+  college     String?   // College name
+  branch      String?   // e.g., CSE, ECE
+
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
 }
+
 
 model TeacherAttendance {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
+
 
 export async function GET() {
   try {

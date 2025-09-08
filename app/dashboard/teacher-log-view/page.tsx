@@ -31,6 +31,9 @@ type TeachingLog = {
   date: string;
   startTime: string;
   endTime: string;
+  college?: string;
+  branch?: string;
+  year?: string;
   teacher: Teacher;
 };
 
@@ -42,8 +45,7 @@ export default function HRTeachingLogReviewPage() {
   const [logs, setLogs] = useState<TeachingLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-
-  const [selectedDate, setSelectedDate] = useState(""); // ✅ one date filter
+  const [selectedDate, setSelectedDate] = useState("");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -127,6 +129,14 @@ export default function HRTeachingLogReviewPage() {
     );
   }, [logs, selectedDate]);
 
+  // ✅ Format time into 12hr with AM/PM
+  const formatTime = (time: string) => {
+    if (!time) return "-";
+    const d = new Date(time);
+    if (isNaN(d.getTime())) return "-";
+    return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+  };
+
   return (
     <DashboardLayout title="Teaching Logs">
       <div className="flex justify-between items-center mb-4">
@@ -184,12 +194,17 @@ export default function HRTeachingLogReviewPage() {
       ) : !selectedTeacher ? (
         <p className="text-sm text-muted-foreground">Please select a teacher to view logs.</p>
       ) : filteredLogs.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No logs found for this teacher {selectedDate ? `on ${selectedDate}` : ""}.</p>
+        <p className="text-sm text-muted-foreground">
+          No logs found for this teacher {selectedDate ? `on ${selectedDate}` : ""}.
+        </p>
       ) : (
         <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>College</TableHead>
+                <TableHead>Branch</TableHead>
+                <TableHead>Year</TableHead>
                 <TableHead>Class</TableHead>
                 <TableHead>Subject</TableHead>
                 <TableHead>Topic</TableHead>
@@ -202,27 +217,16 @@ export default function HRTeachingLogReviewPage() {
             <TableBody>
               {filteredLogs.map((log) => (
                 <TableRow key={log.id}>
+                  <TableCell>{log.college || "-"}</TableCell>
+                  <TableCell>{log.branch || "-"}</TableCell>
+                  <TableCell>{log.year || "-"}</TableCell>
                   <TableCell>{log.className}</TableCell>
                   <TableCell>{log.subject}</TableCell>
                   <TableCell>{log.topic}</TableCell>
                   <TableCell className="max-w-[200px] truncate">{log.description}</TableCell>
                   <TableCell>{new Date(log.date).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    {log.startTime
-                      ? new Date(log.startTime).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "-"}
-                  </TableCell>
-                  <TableCell>
-                    {log.endTime
-                      ? new Date(log.endTime).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "-"}
-                  </TableCell>
+                  <TableCell>{formatTime(log.startTime)}</TableCell>
+                  <TableCell>{formatTime(log.endTime)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

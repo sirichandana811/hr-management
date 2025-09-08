@@ -9,11 +9,16 @@ export async function POST(req: Request) {
     const { userId, leaveTypeId, startDate, endDate, reason } = body;
 
     if (!userId || !leaveTypeId || !startDate || !endDate) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
-    // Fetch leave type
-    const leaveType = await prisma.leaveType.findUnique({ where: { id: leaveTypeId } });
+    // ✅ Fetch leave type
+    const leaveType = await prisma.leaveType.findUnique({
+      where: { id: leaveTypeId },
+    });
     if (!leaveType) {
       return NextResponse.json({ error: "Invalid leave type" }, { status: 400 });
     }
@@ -23,18 +28,13 @@ export async function POST(req: Request) {
 
     // ✅ Check for duplicate/overlapping leave requests
     const existingLeave = await prisma.leaveRequest.findFirst({
-      where: {
-        userId,
-        leaveTypeId,
-        status: { notIn: ["REJECTED", "CANCELLED"] },
-        OR: [
-          {
-            startDate: { lte: end },
-            endDate: { gte: start },
-          },
-        ],
-      },
-    });
+  where: {
+    userId,
+    status: { notIn: ["REJECTED", "CANCELLED"] },
+    startDate: { lte: end },
+    endDate: { gte: start },
+  },
+});
 
     if (existingLeave) {
       return NextResponse.json(
@@ -43,10 +43,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // Calculate leave days excluding holidays
+    // ✅ Calculate leave days excluding holidays
     const days = await calculateWorkingDays(start, end);
 
-    // Fetch or create LeaveBalance for this user & leaveType
+    // ✅ Fetch or create LeaveBalance (but don’t update it yet)
     let leaveBalance = await prisma.leaveBalance.findFirst({
       where: { userId, leaveTypeId },
     });
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
       });
     }
 
-    // Check remaining balance
+    // ✅ Check if user has enough remaining balance
     if (days > leaveBalance.remaining) {
       return NextResponse.json(
         {
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create leave request
+    // ✅ Create leave request (without reducing balance yet)
     const leaveRequest = await prisma.leaveRequest.create({
       data: {
         userId,
@@ -87,18 +87,9 @@ export async function POST(req: Request) {
       },
     });
 
-    // Update LeaveBalance used and remaining
-    await prisma.leaveBalance.update({
-      where: { id: leaveBalance.id },
-      data: {
-        used: leaveBalance.used + days,
-        remaining: leaveBalance.remaining - days,
-      },
-    });
-
     return NextResponse.json(leaveRequest);
   } catch (err) {
-    console.error(err);
+    console.error("Leave Apply Error:", err);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

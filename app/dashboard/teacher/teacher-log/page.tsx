@@ -16,15 +16,20 @@ export default function TeacherTopicsPage() {
     topic: "",
     description: "",
     date: "",
-    startTime: "", // added
-    endTime: "",   // added
+    startTime: "",
+    endTime: "",
+    year: "",
+    college: "",
+    branch: "",
   });
   const [message, setMessage] = useState("");
   const { data: session } = useSession();
   const router = useRouter();
   const teacherId = session?.user?.id || null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -48,6 +53,9 @@ export default function TeacherTopicsPage() {
         date: "",
         startTime: "",
         endTime: "",
+        year: "",
+        college: "",
+        branch: "",
       });
     } else {
       setMessage("❌ Failed to save topic");
@@ -77,6 +85,39 @@ export default function TeacherTopicsPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+
+            {/* ✅ College, Branch, Year at top */}
+            <Input
+              type="text"
+              name="college"
+              placeholder="College Name"
+              value={form.college}
+              onChange={handleChange}
+              required
+            />
+            <Input
+              type="text"
+              name="branch"
+              placeholder="Branch (e.g., CSE, ECE)"
+              value={form.branch}
+              onChange={handleChange}
+              required
+            />
+            <select
+              name="year"
+              value={form.year}
+              onChange={handleChange}
+              required
+              className="w-full border rounded-md p-2"
+            >
+              <option value="">Select Year</option>
+              <option value="1st">1st Year</option>
+              <option value="2nd">2nd Year</option>
+              <option value="3rd">3rd Year</option>
+              <option value="4th">4th Year</option>
+            </select>
+
+            {/* ✅ Class, Subject, Topic */}
             <Input
               type="text"
               name="className"
@@ -107,6 +148,8 @@ export default function TeacherTopicsPage() {
               value={form.description}
               onChange={handleChange}
             />
+
+            {/* ✅ Date & Time */}
             <Input
               type="date"
               name="date"
@@ -130,6 +173,7 @@ export default function TeacherTopicsPage() {
                 required
               />
             </div>
+
             <Button type="submit" className="w-full">
               Save Topic
             </Button>

@@ -20,6 +20,7 @@ export default function AttendancePage() {
   const [attendance, setAttendance] = useState<{ [key: string]: AttendanceRecord }>({});
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0, 10)); // YYYY-MM-DD
   const [loading, setLoading] = useState<boolean>(true);
+  const [saveLoading, setSaveLoading] = useState<boolean>(false);
 
   useEffect(() => {
     fetchTeachers();
@@ -63,12 +64,14 @@ export default function AttendancePage() {
 
   // ✅ New function: update all teachers' attendance at once
   const handleSaveAll = async () => {
+    if (saveLoading) return; // Prevent multiple clicks
+    setSaveLoading(true);
     try {
       const records = Object.entries(attendance).map(([teacherId, record]) => ({
         teacherId,
         date: selectedDate,
-        forenoon: record.forenoon || "Absent",
-        afternoon: record.afternoon || "Absent",
+        forenoon: record?.forenoon ? record.forenoon : "Present",
+        afternoon: record?.afternoon ? record.afternoon : "Present",
         markedById: session?.user.id,
       }));
 
@@ -87,12 +90,12 @@ export default function AttendancePage() {
     } catch (error) {
       console.error("Error saving all attendance:", error);
       alert("Error saving attendance");
+    }finally {
+      setSaveLoading(false);
     }
   };
 
-  const handleHistory = (teacherId: string) => {
-    router.push(`/dashboard/hr/attendance/history?teacherId=${teacherId}`);
-  };
+  
 
   if (loading) return <DashboardLayout title="Attendance">Loading...</DashboardLayout>;
 
@@ -123,7 +126,7 @@ export default function AttendancePage() {
               <TableHead>Employee ID</TableHead>
               <TableHead>Forenoon</TableHead>
               <TableHead>Afternoon</TableHead>
-              <TableHead>Actions</TableHead>
+           
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -133,34 +136,38 @@ export default function AttendancePage() {
                 <TableCell>{teacher.email}</TableCell>
                 <TableCell>{teacher.employeeId}</TableCell>
                 <TableCell>
-                  <select
-                    className="border rounded p-1"
-                    value={attendance[teacher.id]?.forenoon || ""}
-                    onChange={(e) => handleChange(teacher.id, "forenoon", e.target.value)}
-                  >
-                    <option value="">Select</option>
-                    <option value="Present">Present</option>
-                    <option value="Absent">Absent</option>
-                    <option value="Leave">Leave</option>
-                  </select>
+                  <div className="flex gap-2">
+                    {["Present", "Absent"].map((option) => (
+                      <label key={option} className="flex items-center gap-1">
+                        <input
+                          type="radio"
+                          name={`forenoon-${teacher.id}`}
+                          value={option}
+                          checked={attendance[teacher.id]?.forenoon === option}
+                          onChange={(e) => handleChange(teacher.id, "forenoon", e.target.value)}
+                        />
+                        {option}
+                      </label>
+                    ))}
+                  </div>
                 </TableCell>
                 <TableCell>
-                  <select
-                    className="border rounded p-1"
-                    value={attendance[teacher.id]?.afternoon || ""}
-                    onChange={(e) => handleChange(teacher.id, "afternoon", e.target.value)}
-                  >
-                    <option value="">Select</option>
-                    <option value="Present">Present</option>
-                    <option value="Absent">Absent</option>
-                    <option value="Leave">Leave</option>
-                  </select>
+                  <div className="flex gap-2">
+                    {["Present", "Absent"].map((option) => (
+                      <label key={option} className="flex items-center gap-1">
+                        <input
+                          type="radio"
+                          name={`afternoon-${teacher.id}`}
+                          value={option}
+                          checked={attendance[teacher.id]?.afternoon === option}
+                          onChange={(e) => handleChange(teacher.id, "afternoon", e.target.value)}
+                        />
+                        {option}
+                      </label>
+                    ))}
+                  </div>
                 </TableCell>
-                <TableCell>
-                  <Button variant="outline" onClick={() => handleHistory(teacher.id)}>
-                    History
-                  </Button>
-                </TableCell>
+                
               </TableRow>
             ))}
           </TableBody>

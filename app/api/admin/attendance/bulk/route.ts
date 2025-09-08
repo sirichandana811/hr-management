@@ -9,8 +9,8 @@ const attendanceSchema = z.array(
   z.object({
     teacherId: z.string().min(1),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // e.g. "2025-09-01"
-    forenoon: z.enum(["Present", "Absent", "Leave"]),
-    afternoon: z.enum(["Present", "Absent", "Leave"]),
+    forenoon: z.enum(["Present", "Absent"]),
+    afternoon: z.enum(["Present", "Absent"]),
     markedById: z.string().min(1),
   })
 );
@@ -35,9 +35,6 @@ export async function POST(req: Request) {
     }
 
     const records = parsed.data;
-
-    // If your Prisma model is `TeacherAttendance`, the Prisma client is `prisma.teacherAttendance`
-    // If your model is `Attendance`, use `prisma.attendance` instead.
     const ops = records.map((r) => {
       const d = toUTCDate(r.date);
       if (isNaN(d.getTime())) {
@@ -66,9 +63,9 @@ export async function POST(req: Request) {
 
     await prisma.$transaction(ops);
 
-    return NextResponse.json({ message: "Bulk attendance saved/updated" }, { status: 201 });
+    return NextResponse.json({ message: "attendance saved/updated" }, { status: 201 });
   } catch (error) {
-    console.error("Bulk attendance error:", error);
+    console.error("attendance error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
