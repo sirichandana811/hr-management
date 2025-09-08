@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { signIn, getSession } from "next-auth/react"
+import { signIn, getSession, signOut, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -10,9 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
-import { useEffect } from "react"
-import { signOut } from "next-auth/react"
-import { useSession } from "next-auth/react"
+
 export default function SignInPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -48,7 +46,6 @@ export default function SignInPage() {
           HR: "/dashboard/hr",
           TEACHER: "/dashboard/teacher",
           CONTENT_CREATOR: "/dashboard/content",
-         
         }
 
         router.push(roleRoutes[session.user.role] || "/select-role")
@@ -104,7 +101,6 @@ export default function SignInPage() {
                 <option value="ADMIN">Admin</option>
                 <option value="HR">HR</option>
                 <option value="TEACHER">Teacher</option>
-               
               </select>
             </div>
 
@@ -114,7 +110,14 @@ export default function SignInPage() {
             </Button>
           </form>
 
-         
+          {/* ✅ Back to Homepage button */}
+          <div className="mt-4 text-center">
+            <Link href="/">
+              <Button variant="outline" className="w-full">
+                Back to Homepage
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
