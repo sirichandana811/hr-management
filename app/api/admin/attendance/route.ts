@@ -1,65 +1,27 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { after } from "node:test";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-export async function POST(req: Request) {
-  try {
-    const { teacherId, date, forenoon, afternoon, markedById } = await req.json();
-
-    if (!teacherId || !date || !forenoon || !afternoon || !markedById) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
-    const attendance = await prisma.teacherAttendance.upsert({
-      where: {
-        teacherId_date: {
-          teacherId,
-          date: new Date(date),
-        },
-      },
-      update: { forenoon, afternoon, markedById },
-      create: {
-        teacherId,
-        date: new Date(date),
-        forenoon,
-        afternoon,
-        markedById,
-      },
-    });
-
-    return NextResponse.json(attendance);
-  } catch (error) {
-    console.error("Attendance Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+const toUTCDate = (yyyyMmDd: string) => {
+  if (!yyyyMmDd || !/^\d{4}-\d{2}-\d{2}$/.test(yyyyMmDd)) {
+    const today = new Date();
+    return new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate())
+    );
   }
-}
-import { NextRequest } from "next/server";
+  const [year, month, day] = yyyyMmDd.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+};
 
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const role = url.searchParams.get("role") as "TEACHER" | "HR";
+  const dateParam = url.searchParams.get("date");
+  const date = toUTCDate(dateParam || "");
 
-// GET: Fetch teachers with attendance for a specific date
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const dateParam = searchParams.get("date");
-  const teacherId = searchParams.get("teacherId");
-
-  const date = dateParam ? new Date(dateParam) : new Date();
-
-  if (teacherId) {
-    // Fetch attendance for one teacher
-    const record = await prisma.teacherAttendance.findUnique({
-      where: {
-        teacherId_date: {
-          teacherId,
-          date,
-        },
-      },
-    });
-    return NextResponse.json(record || {});
-  }
-
-  // Fetch all teachers
-  const teachers = await prisma.user.findMany({
-    where: { role: "TEACHER" },
+  const users = await prisma.user.findMany({
+    where: { role },
     select: {
       id: true,
       name: true,
@@ -67,22 +29,59 @@ export async function GET(req: NextRequest) {
       employeeId: true,
       teacherAttendance: {
         where: { date },
-        select: {
-          forenoon: true,
-          afternoon: true,
-          date: true,
-        },
+        select: { forenoon: true, afternoon: true, date: true },
       },
     },
   });
 
-  // Map attendance to each teacher
-  const result = teachers.map((teacher) => ({
-    ...teacher,
-    attendance: teacher.teacherAttendance[0] || { forenoon: "", afternoon: "", date },
+  const result = users.map((user) => ({
+    ...user,
+    attendance: user.teacherAttendance[0] || undefined,
   }));
 
   return NextResponse.json(result);
 }
 
-// POST: Create or update attendance (upsert)
+export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const records: {
+    teacherId: string;
+    date: string;
+    forenoon: string;
+    afternoon: string;
+    markedById: string;
+  }[] = await req.json();
+
+  try {
+    const ops = records.map((r) => {
+      const date = toUTCDate(r.date);
+      return prisma.teacherAttendance.upsert({
+        where: { teacherId_date: { teacherId: r.teacherId, date } },
+        create: {
+          teacherId: r.teacherId,
+          date,
+          forenoon: r.forenoon,
+          afternoon: r.afternoon,
+          markedById: r.markedById,
+          role:r.role
+        },
+        update: {
+          forenoon: r.forenoon,
+          afternoon: r.afternoon,
+          markedById: r.markedById,
+          role:r.role
+        },
+      });
+    });
+
+    const result = await prisma.$transaction(ops);
+    return NextResponse.json({ message: "Attendance saved/updated", result });
+  } catch (error) {
+    console.error("Attendance Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}

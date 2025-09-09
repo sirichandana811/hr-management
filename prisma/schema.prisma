@@ -137,7 +137,7 @@ model Review {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  visibleToTeacher Boolean @default(false) 
   reviewer User @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
   teacher  User @relation("Teacher", fields: [teacherId], references: [id], onDelete: Cascade)
 
@@ -186,7 +186,7 @@ model TeacherAttendance {
   date      DateTime
   forenoon  String
   afternoon String
-
+  role      UserRole?
   teacher   User   @relation("UserTeacherAttendance", fields: [teacherId], references: [id], onDelete: Cascade)
   teacherId String @db.ObjectId
 

@@ -42,22 +42,29 @@ export default function AllAttendanceHistoryPage() {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string>("teacher"); // ✅ role selector
 
   const [loading, setLoading] = useState<boolean>(false);
+  const [mounted, setMounted] = useState(false); // ✅ for react-select hydration fix
 
-  // Fetch teacher list once
+  // Mark as mounted on client
   useEffect(() => {
-    const fetchTeachers = async () => {
+    setMounted(true);
+  }, []);
+
+  // Fetch teacher/HR list once
+  useEffect(() => {
+    const fetchUsers = async () => {
       try {
-        const res = await fetch("/api/admin/teachers");
+        const res = await fetch(`/api/admin/attendance/users?role=${selectedRole}`);
         const data = await res.json();
         if (Array.isArray(data)) setTeachers(data);
       } catch (err) {
-        console.error("Error fetching teachers:", err);
+        console.error("Error fetching users:", err);
       }
     };
-    fetchTeachers();
-  }, []);
+    fetchUsers();
+  }, [selectedRole]);
 
   // Fetch attendance
   const fetchAttendance = async () => {
@@ -71,6 +78,7 @@ export default function AllAttendanceHistoryPage() {
       const params = new URLSearchParams();
       params.append("startDate", startDate);
       params.append("endDate", endDate);
+      params.append("role", selectedRole.toUpperCase());
 
       if (selectedTeacher) {
         params.append("name", selectedTeacher.name);
@@ -91,7 +99,7 @@ export default function AllAttendanceHistoryPage() {
   // Auto-fetch when filters change
   useEffect(() => {
     fetchAttendance();
-  }, [startDate, endDate, selectedTeacher]);
+  }, [startDate, endDate, selectedTeacher, selectedRole]);
 
   const handleDeleteByRange = async () => {
     if (!startDate || !endDate) {
@@ -101,12 +109,12 @@ export default function AllAttendanceHistoryPage() {
 
     const confirmMsg = selectedTeacher
       ? `Are you sure you want to delete attendance records for ${selectedTeacher.name} from ${startDate} to ${endDate}?`
-      : `Are you sure you want to delete attendance records for ALL teachers from ${startDate} to ${endDate}?`;
+      : `Are you sure you want to delete attendance records for ALL ${selectedRole.toUpperCase()} from ${startDate} to ${endDate}?`;
 
     if (!confirm(confirmMsg)) return;
 
     try {
-      const params = new URLSearchParams({ startDate, endDate });
+      const params = new URLSearchParams({ startDate, endDate, role: selectedRole.toUpperCase() });
 
       if (selectedTeacher) {
         params.append("name", selectedTeacher.name);
@@ -129,17 +137,41 @@ export default function AllAttendanceHistoryPage() {
     }
   };
 
+  // ✅ consistent date formatter to avoid hydration mismatch
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "-";
+    try {
+      return new Date(dateString).toISOString().split("T")[0]; // YYYY-MM-DD
+    } catch {
+      return dateString;
+    }
+  };
+
   return (
     <DashboardLayout title="All Attendance History">
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold">All Attendance History</h1>
-          <Button onClick={() => router.push("/dashboard/hr")}>Back</Button>
+          <Button onClick={() => router.push("/dashboard/admin")}>Back</Button>
         </div>
 
         {/* Filters */}
         <div className="mb-4 flex flex-wrap items-center gap-3">
+          {/* Role selector */}
+          <div className="flex items-center min-w-[150px]">
+            <label className="font-semibold mr-2">Role:</label>
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="border rounded p-1"
+            >
+              <option value="teacher">Teacher</option>
+              <option value="hr">HR</option>
+            </select>
+          </div>
+
+          {/* Start/End Dates */}
           <div className="flex items-center">
             <label className="font-semibold mr-2">Start Date:</label>
             <input
@@ -160,28 +192,33 @@ export default function AllAttendanceHistoryPage() {
             />
           </div>
 
+          {/* Teacher/HR dropdown */}
           <div className="flex items-center min-w-[250px] flex-1">
-            <label className="font-semibold mr-2">Teacher:</label>
-            <Select
-              className="flex-1"
-              options={teachers.map((t) => ({
-                value: t.id,
-                label: `${t.name} - ${t.email}`,
-                ...t,
-              }))}
-              value={
-                selectedTeacher
-                  ? {
-                      value: selectedTeacher.id,
-                      label: `${selectedTeacher.name} - ${selectedTeacher.email}`,
-                      ...selectedTeacher,
-                    }
-                  : null
-              }
-              onChange={(option) => setSelectedTeacher(option as Teacher)}
-              isClearable
-              placeholder="Search & select teacher..."
-            />
+            <label className="font-semibold mr-2">
+              {selectedRole === "teacher" ? "Teacher:" : "HR:"}
+            </label>
+            {mounted && (
+              <Select
+                className="flex-1"
+                options={teachers.map((t) => ({
+                  value: t.id,
+                  label: `${t.name} - ${t.email}`,
+                  ...t,
+                }))}
+                value={
+                  selectedTeacher
+                    ? {
+                        value: selectedTeacher.id,
+                        label: `${selectedTeacher.name} - ${selectedTeacher.email}`,
+                        ...selectedTeacher,
+                      }
+                    : null
+                }
+                onChange={(option) => setSelectedTeacher(option as Teacher)}
+                isClearable
+                placeholder={`Search & select ${selectedRole}...`}
+              />
+            )}
           </div>
 
           <Button
@@ -209,13 +246,15 @@ export default function AllAttendanceHistoryPage() {
         ) : loading ? (
           <p>Loading attendance...</p>
         ) : attendance.length === 0 ? (
-          <p>No attendance found for the selected range/teacher.</p>
+          <p>No attendance found for the selected range / {selectedRole}.</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Teacher Name</TableHead>
+                <TableHead>
+                  {selectedRole === "teacher" ? "Teacher Name" : "HR Name"}
+                </TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Employee ID</TableHead>
                 <TableHead>Forenoon</TableHead>
@@ -226,9 +265,7 @@ export default function AllAttendanceHistoryPage() {
             <TableBody>
               {attendance.map((record) => (
                 <TableRow key={record.id}>
-                  <TableCell>
-                    {new Date(record.date).toLocaleDateString()}
-                  </TableCell>
+                  <TableCell>{formatDate(record.date)}</TableCell>
                   <TableCell>{record.teacher.name}</TableCell>
                   <TableCell>{record.teacher.email}</TableCell>
                   <TableCell>{record.teacher.employeeId}</TableCell>

@@ -219,10 +219,13 @@ export default async function HRDashboard() {
             <CardContent>
               <div className="space-y-2">
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/attendance" prefetch>View Attendance</Link>
+                  <Link href="/dashboard/hr/attendance" prefetch>Give Attendance</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
                   <Link href="/dashboard/hr/attendance/all" prefetch>Attendance History</Link>
+                </Button>
+                 <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/attendance/view" prefetch>View Attendance</Link>
                 </Button>
               </div>
             </CardContent>

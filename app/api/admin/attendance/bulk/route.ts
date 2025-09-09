@@ -1,25 +1,29 @@
+// File: /app/api/admin/attendance/bulk/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
-// Expect the UI to send YYYY-MM-DD
+// Schema matching your TeacherAttendance model
 const attendanceSchema = z.array(
   z.object({
     teacherId: z.string().min(1),
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // e.g. "2025-09-01"
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD
     forenoon: z.enum(["Present", "Absent"]),
     afternoon: z.enum(["Present", "Absent"]),
-    markedById: z.string().min(1),
+    markedById: z.string().optional(),
+    role: z.enum(["TEACHER", "HR"]).optional(),
   })
 );
 
-// Normalize "YYYY-MM-DD" to start-of-day UTC Date
+// Helper to convert YYYY-MM-DD to UTC Date
 const toUTCDate = (yyyyMmDd: string) => new Date(`${yyyyMmDd}T00:00:00.000Z`);
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
+
+  // Only Admin can mark attendance
   if (!session?.user || session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -27,7 +31,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = attendanceSchema.safeParse(body);
+
     if (!parsed.success) {
+      console.log("Validation errors:", parsed.error.format());
       return NextResponse.json(
         { error: "Invalid input", details: parsed.error.format() },
         { status: 400 }
@@ -35,37 +41,43 @@ export async function POST(req: Request) {
     }
 
     const records = parsed.data;
+
+    // Prepare upsert operations
     const ops = records.map((r) => {
-      const d = toUTCDate(r.date);
-      if (isNaN(d.getTime())) {
+      const dateUTC = toUTCDate(r.date);
+      if (isNaN(dateUTC.getTime())) {
         throw new Error(`Invalid date received: ${r.date}`);
       }
 
       return prisma.teacherAttendance.upsert({
         where: {
-          // Composite unique on [teacherId, date]
-          teacherId_date: { teacherId: r.teacherId, date: d },
+          teacherId_date: { teacherId: r.teacherId, date: dateUTC },
         },
         update: {
           forenoon: r.forenoon,
           afternoon: r.afternoon,
-          markedById: r.markedById,
+          markedById: r.markedById || session.user.id,
+          role: r.role,
         },
         create: {
           teacherId: r.teacherId,
-          date: d,
+          date: dateUTC,
           forenoon: r.forenoon,
           afternoon: r.afternoon,
-          markedById: r.markedById,
+          markedById: r.markedById || session.user.id,
+          role: r.role,
         },
       });
     });
 
     await prisma.$transaction(ops);
 
-    return NextResponse.json({ message: "attendance saved/updated" }, { status: 201 });
+    return NextResponse.json(
+      { message: "Attendance saved/updated successfully" },
+      { status: 201 }
+    );
   } catch (error) {
-    console.error("attendance error:", error);
+    console.error("Error saving attendance:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -11,7 +11,9 @@ export async function GET(req: Request) {
     const name = searchParams.get("name");
     const email = searchParams.get("email");
 
-    const where: any = {};
+    const where: any = {
+      role: "TEACHER", // ✅ always fetch teacher attendance only
+    };
 
     // ✅ Date range filter
     if (startDate && endDate) {
@@ -67,6 +69,7 @@ export async function DELETE(req: Request) {
     }
 
     const where: any = {
+      role: "TEACHER", // ✅ always delete only teacher attendance
       date: {
         gte: new Date(startDate),
         lte: new Date(endDate),

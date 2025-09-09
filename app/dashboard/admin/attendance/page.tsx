@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useSession } from "next-auth/react";
@@ -13,98 +20,116 @@ interface AttendanceRecord {
   date: string;
 }
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  employeeId: string;
+  attendance?: AttendanceRecord; // may be undefined
+}
+
 export default function AttendancePage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [teachers, setTeachers] = useState<any[]>([]);
-  const [attendance, setAttendance] = useState<{ [key: string]: AttendanceRecord }>({});
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0, 10)); // YYYY-MM-DD
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>(
+    new Date().toISOString().slice(0, 10)
+  ); // YYYY-MM-DD
+  const [selectedRole, setSelectedRole] = useState<"TEACHER" | "HR">("TEACHER");
   const [loading, setLoading] = useState<boolean>(true);
   const [saveLoading, setSaveLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    fetchTeachers();
-  }, [selectedDate]); // Reload when date changes
+  const [attendance, setAttendance] = useState<{
+    [key: string]: AttendanceRecord;
+  }>({});
 
-  const fetchTeachers = async () => {
+  // Fetch users + attendance for selected date
+  const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/attendance/users?role=teacher");
-      const teacherList: any[] = await res.json();
-      setTeachers(teacherList);
-
-      const attendanceResponses = await Promise.all(
-        teacherList.map((teacher) =>
-          fetch(`/api/admin/attendance?teacherId=${teacher.id}&date=${selectedDate}`).then((res) => res.json())
-        )
+      const res = await fetch(
+        `/api/admin/attendance?role=${selectedRole}&date=${selectedDate}`
       );
+      const data: User[] = await res.json();
 
-      const attData: { [key: string]: AttendanceRecord } = {};
-      teacherList.forEach((teacher, index: number) => {
-        const record = attendanceResponses[index];
-        attData[teacher.id] =
-          record && Object.keys(record).length > 0
-            ? record
-            : { forenoon: "", afternoon: "", date: selectedDate };
+      setUsers(data);
+
+      const attState: { [key: string]: AttendanceRecord } = {};
+      data.forEach((user) => {
+        attState[user.id] = user.attendance || {
+          forenoon: "Present",
+          afternoon: "Present",
+          date: selectedDate,
+        };
       });
-
-      setAttendance(attData);
+      setAttendance(attState);
     } catch (error) {
-      console.error("Error fetching teachers or attendance:", error);
+      console.error("Error fetching users:", error);
     }
     setLoading(false);
   };
 
-  const handleChange = (teacherId: string, sessionPart: "forenoon" | "afternoon", value: string) => {
+  useEffect(() => {
+    fetchUsers();
+  }, [selectedDate, selectedRole]);
+
+  const handleChange = (
+    userId: string,
+    sessionPart: "forenoon" | "afternoon",
+    value: string
+  ) => {
     setAttendance((prev) => ({
       ...prev,
-      [teacherId]: { ...prev[teacherId], [sessionPart]: value, date: selectedDate },
+      [userId]: { ...prev[userId], [sessionPart]: value, date: selectedDate },
     }));
   };
 
-  // ✅ New function: update all teachers' attendance at once
   const handleSaveAll = async () => {
-    if (saveLoading) return; // Prevent multiple clicks
-    setSaveLoading(true);
-    try {
-      const records = Object.entries(attendance).map(([teacherId, record]) => ({
-        teacherId,
-        date: selectedDate,
-        forenoon: record?.forenoon ? record.forenoon : "Present",
-        afternoon: record?.afternoon ? record.afternoon : "Present",
-        markedById: session?.user.id,
-      }));
+  if (!session?.user?.id) return;
+  setSaveLoading(true);
 
-      const response = await fetch("/api/admin/attendance/bulk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(records),
-      });
+  try {
+    const records = Object.entries(attendance).map(([userId, record]) => ({
+      teacherId: userId,           // can be HR id too
+      date: record.date || selectedDate,
+      forenoon: record.forenoon,
+      afternoon: record.afternoon,
+      markedById: session.user.id,
+      role: selectedRole,          // ✅ send role along with each record
+    }));
 
-      if (response.ok) {
-        alert("All attendance saved/updated!");
-        fetchTeachers();
-      } else {
-        alert("Error saving attendance");
-      }
-    } catch (error) {
-      console.error("Error saving all attendance:", error);
-      alert("Error saving attendance");
-    }finally {
-      setSaveLoading(false);
+    const res = await fetch("/api/admin/attendance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(records),
+    });
+
+    if (res.ok) {
+      alert("Attendance saved/updated successfully!");
+      fetchUsers();
+    } else {
+      const err = await res.json();
+      console.error("Error saving attendance:", err);
+      alert("Error saving attendance. Check console.");
     }
-  };
+  } catch (error) {
+    console.error("Error saving attendance:", error);
+    alert("Error saving attendance. Check console.");
+  }
 
-  
+  setSaveLoading(false);
+};
 
-  if (loading) return <DashboardLayout title="Attendance">Loading...</DashboardLayout>;
+  if (loading)
+    return <DashboardLayout title="Attendance">Loading...</DashboardLayout>;
 
   return (
     <DashboardLayout title="Attendance">
-      <div className="p-6">
-         
+      <div className="p-6 space-y-6">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl font-bold">Mark Teacher Attendance</h1>
+          <h1 className="text-xl font-bold">
+            Mark Attendance ({selectedRole === "TEACHER" ? "Teachers" : "HR"})
+          </h1>
           <Button
             variant="outline"
             onClick={() => router.push("/dashboard/admin/attendance/all")}
@@ -112,23 +137,41 @@ export default function AttendancePage() {
             View Attendance by Date
           </Button>
         </div>
-        
-        <div className="mb-4 flex justify-between items-center">
-           
-          <div>
-            <label className="mr-2 font-semibold">Select Date:</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="border rounded p-1"
-            />
+
+        {/* Role & Date Selector */}
+        <div className="mb-4 flex justify-between items-center gap-4">
+          <div className="flex gap-4 items-center">
+            <div>
+              <label className="mr-2 font-semibold">Role:</label>
+              <select
+                value={selectedRole}
+                onChange={(e) =>
+                  setSelectedRole(e.target.value as "TEACHER" | "HR")
+                }
+                className="border rounded p-1"
+              >
+                <option value="TEACHER">Teacher</option>
+                <option value="HR">HR</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mr-2 font-semibold">Date:</label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="border rounded p-1"
+              />
+            </div>
           </div>
-          {/* ✅ Single button to update all teachers */}
-          <Button onClick={handleSaveAll}>Update All</Button>
+
+          <Button onClick={handleSaveAll} disabled={saveLoading}>
+            {saveLoading ? "Saving..." : "Update All"}
+          </Button>
         </div>
 
-        <Table>
+        <Table className="shadow-sm rounded border">
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -136,25 +179,26 @@ export default function AttendancePage() {
               <TableHead>Employee ID</TableHead>
               <TableHead>Forenoon</TableHead>
               <TableHead>Afternoon</TableHead>
-           
             </TableRow>
           </TableHeader>
           <TableBody>
-            {teachers.map((teacher) => (
-              <TableRow key={teacher.id}>
-                <TableCell>{teacher.name}</TableCell>
-                <TableCell>{teacher.email}</TableCell>
-                <TableCell>{teacher.employeeId}</TableCell>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>{user.name}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.employeeId}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     {["Present", "Absent"].map((option) => (
                       <label key={option} className="flex items-center gap-1">
                         <input
                           type="radio"
-                          name={`forenoon-${teacher.id}`}
+                          name={`forenoon-${user.id}`}
                           value={option}
-                          checked={attendance[teacher.id]?.forenoon === option}
-                          onChange={(e) => handleChange(teacher.id, "forenoon", e.target.value)}
+                          checked={attendance[user.id]?.forenoon === option}
+                          onChange={(e) =>
+                            handleChange(user.id, "forenoon", e.target.value)
+                          }
                         />
                         {option}
                       </label>
@@ -167,17 +211,18 @@ export default function AttendancePage() {
                       <label key={option} className="flex items-center gap-1">
                         <input
                           type="radio"
-                          name={`afternoon-${teacher.id}`}
+                          name={`afternoon-${user.id}`}
                           value={option}
-                          checked={attendance[teacher.id]?.afternoon === option}
-                          onChange={(e) => handleChange(teacher.id, "afternoon", e.target.value)}
+                          checked={attendance[user.id]?.afternoon === option}
+                          onChange={(e) =>
+                            handleChange(user.id, "afternoon", e.target.value)
+                          }
                         />
                         {option}
                       </label>
                     ))}
                   </div>
                 </TableCell>
-                
               </TableRow>
             ))}
           </TableBody>

@@ -1,14 +1,46 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+// ✅ Enum for allowed roles (uppercase)
+enum UserRole {
+  TEACHER = "TEACHER",
+  HR = "HR",
+}
+
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const roleParam = searchParams.get("role");
+
+    if (!roleParam) {
+      return NextResponse.json({ error: "Missing role parameter" }, { status: 400 });
+    }
+
+    const role = roleParam.toUpperCase() as UserRole;
+
+    // ✅ Validate role against enum
+    if (!Object.values(UserRole).includes(role)) {
+      return NextResponse.json(
+        { error: "Invalid role. Allowed: TEACHER, HR" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Fetch users by role (stored as uppercase in DB)
     const users = await prisma.user.findMany({
-        where: { role: "TEACHER" },
-      select: { id: true, name: true, email: true, role: true ,employeeId: true},
+      where: { role },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        employeeId: true,
+        role: true,
+      },
     });
+
     return NextResponse.json(users);
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
+    console.error("Error fetching users:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

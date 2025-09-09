@@ -44,6 +44,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
           { icon: HelpCircle, label: "Support Tickets", href: "/dashboard/admin/ticket" },
           { icon: FileText, label: "Leave Management", href: "/dashboard/admin/leave-management" },
           { icon: BookOpen, label: "Teacher Log", href: "/dashboard/teacher-log-view" },
+          { icon: FileText, label: "Reviews", href: "/dashboard/admin/reviews" },
         ]
       case "HR":
         return [

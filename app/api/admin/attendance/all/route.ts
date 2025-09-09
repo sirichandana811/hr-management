@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// ✅ GET /api/hr/attendance/all
-// Query params: startDate, endDate, name, email
+// ✅ GET /api/admin/attendance/all
+// Query params: startDate, endDate, name, email, role
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -10,6 +10,7 @@ export async function GET(req: Request) {
     const endDate = searchParams.get("endDate");
     const name = searchParams.get("name");
     const email = searchParams.get("email");
+    const role = searchParams.get("role"); // TEACHER / HR
 
     const where: any = {};
 
@@ -21,7 +22,12 @@ export async function GET(req: Request) {
       };
     }
 
-    // ✅ Teacher filter
+    // ✅ Role filter
+    if (role) {
+      where.role = role.toUpperCase();
+    }
+
+    // ✅ Teacher/HR filter
     if (name || email) {
       where.teacher = {};
       if (name) where.teacher.name = name;
@@ -49,8 +55,8 @@ export async function GET(req: Request) {
   }
 }
 
-// ✅ DELETE /api/hr/attendance/all
-// Body/query params: startDate, endDate, name, email
+// ✅ DELETE /api/admin/attendance/all
+// Query params: startDate, endDate, name, email, role
 export async function DELETE(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -58,6 +64,7 @@ export async function DELETE(req: Request) {
     const endDate = searchParams.get("endDate");
     const name = searchParams.get("name");
     const email = searchParams.get("email");
+    const role = searchParams.get("role"); // TEACHER / HR
 
     if (!startDate || !endDate) {
       return NextResponse.json(
@@ -72,6 +79,10 @@ export async function DELETE(req: Request) {
         lte: new Date(endDate),
       },
     };
+
+    if (role) {
+      where.role = role.toUpperCase();
+    }
 
     if (name || email) {
       where.teacher = {};

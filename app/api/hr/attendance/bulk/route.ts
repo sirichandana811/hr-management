@@ -55,7 +55,9 @@ export async function POST(req: Request) {
             update: {
               forenoon: r.forenoon,
               afternoon: r.afternoon,
+              role: "TEACHER",
               markedById: r.markedById,
+
               updatedAt: new Date(),
             },
             create: {
@@ -63,6 +65,7 @@ export async function POST(req: Request) {
               date: d,
               forenoon: r.forenoon,
               afternoon: r.afternoon,
+              role: "TEACHER",
               markedById: r.markedById,
             },
           });
