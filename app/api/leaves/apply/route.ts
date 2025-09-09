@@ -45,7 +45,12 @@ export async function POST(req: Request) {
 
     // ✅ Calculate leave days excluding holidays
     const days = await calculateWorkingDays(start, end);
-
+    if (days <= 0) {
+      return NextResponse.json(
+        { error: "No working days in the selected date range." },
+        { status: 400 }
+      );
+    }
     // ✅ Fetch or create LeaveBalance (but don’t update it yet)
     let leaveBalance = await prisma.leaveBalance.findFirst({
       where: { userId, leaveTypeId },

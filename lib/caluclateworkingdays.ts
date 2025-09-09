@@ -6,8 +6,15 @@ export async function calculateWorkingDays(startDate: Date, endDate: Date) {
     select: { date: true },
   });
 
+  // ✅ Only keep holidays that are NOT weekends
   const holidaySet = new Set(
-    holidays.map((h) => h.date.toISOString().split("T")[0])
+    holidays
+      .filter((h) => {
+        const d = new Date(h.date);
+        const day = d.getDay();
+        return day !== 0 && day !== 6; // exclude Sundays & Saturdays
+      })
+      .map((h) => h.date.toISOString().split("T")[0])
   );
 
   let days = 0;

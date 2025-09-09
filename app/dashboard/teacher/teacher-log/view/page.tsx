@@ -52,6 +52,7 @@ export default function HRTeachingLogReviewPage() {
   const [logs, setLogs] = useState<TeachingLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDate, setSelectedDate] = useState(""); // 📅 calendar filter
 
   const [editingLog, setEditingLog] = useState<TeachingLog | null>(null);
   const [formData, setFormData] = useState({
@@ -87,11 +88,13 @@ export default function HRTeachingLogReviewPage() {
     fetchLogs();
   }, []);
 
-  // Filter logs
+  // Filter logs (search + calendar filter)
   const filteredLogs = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return logs.filter(
-      (log) =>
+    return logs.filter((log) => {
+      const dateStr = new Date(log.date).toISOString().slice(0, 10); // yyyy-mm-dd
+
+      const matchesText =
         (log.topic?.toLowerCase() || "").includes(q) ||
         (log.description?.toLowerCase() || "").includes(q) ||
         (log.className?.toLowerCase() || "").includes(q) ||
@@ -100,9 +103,13 @@ export default function HRTeachingLogReviewPage() {
         (log.teacher.email?.toLowerCase() || "").includes(q) ||
         (log.college?.toLowerCase() || "").includes(q) ||
         (log.branch?.toLowerCase() || "").includes(q) ||
-        (log.year?.toLowerCase() || "").includes(q)
-    );
-  }, [logs, searchQuery]);
+        (log.year?.toLowerCase() || "").includes(q);
+
+      const matchesDate = selectedDate ? dateStr === selectedDate : true;
+
+      return matchesText && matchesDate;
+    });
+  }, [logs, searchQuery, selectedDate]);
 
   const handleEdit = (log: TeachingLog) => {
     setEditingLog(log);
@@ -171,11 +178,23 @@ export default function HRTeachingLogReviewPage() {
         </Button>
       </div>
 
-      <Input
-        placeholder="Search by topic, description, class, subject, teacher…"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
+      <div className="flex gap-4 mb-4">
+        <Input
+          placeholder="Search by topic, subject, teacher…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <Input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+        />
+        {selectedDate && (
+          <Button variant="outline" onClick={() => setSelectedDate("")}>
+            Clear Date
+          </Button>
+        )}
+      </div>
 
       {loading ? (
         <div className="py-8 flex justify-center">
@@ -252,7 +271,6 @@ export default function HRTeachingLogReviewPage() {
             <DialogTitle>Edit Teaching Log</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3">
-            {/* College, Branch, Year first */}
             <Input
               placeholder="College"
               value={formData.college}
@@ -276,7 +294,6 @@ export default function HRTeachingLogReviewPage() {
               <option value="4th">4th Year</option>
             </select>
 
-            {/* Then Class, Subject, Topic */}
             <Input
               placeholder="Class"
               value={formData.className}
@@ -293,7 +310,6 @@ export default function HRTeachingLogReviewPage() {
               onChange={(e) => handleChange("topic", e.target.value)}
             />
 
-            {/* Description */}
             <textarea
               placeholder="Description"
               className="border p-2 rounded"
@@ -301,7 +317,6 @@ export default function HRTeachingLogReviewPage() {
               onChange={(e) => handleChange("description", e.target.value)}
             />
 
-            {/* Date + Time */}
             <Input
               type="date"
               value={formData.date}

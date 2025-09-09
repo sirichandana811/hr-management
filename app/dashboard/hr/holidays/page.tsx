@@ -14,7 +14,7 @@ export default function HolidayCalendar() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
-
+  const [loading, setLoading] = useState(false);
   const fetchHolidays = async () => {
     try {
       const res = await fetch("/api/holidays");
@@ -25,8 +25,11 @@ export default function HolidayCalendar() {
   };
 
   const addHoliday = async () => {
+    if (loading) return;
+    setLoading(true);
     if (!name || !date) {
       alert("Please fill in both fields.");
+      setLoading(false);
       return;
     }
     try {
@@ -40,6 +43,8 @@ export default function HolidayCalendar() {
       fetchHolidays();
     } catch (error) {
       console.error("Error adding holiday:", error);
+    } finally {
+      setLoading(false);
     }
   };
 

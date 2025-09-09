@@ -105,8 +105,7 @@ export default function HRTeachingLogReviewPage() {
   };
 
   const handleBack = () => {
-    if (window.history.length > 1) router.back();
-    else router.push("/auth/signin");
+     router.back();
   };
 
   // Close dropdown on outside click

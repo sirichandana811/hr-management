@@ -123,6 +123,50 @@ export default function AllAttendanceHistoryPage() {
     }
   };
 
+  // ✅ Summary state
+  const [summary, setSummary] = useState({
+    workingDays: 0,
+    forenoonPresent: 0,
+    forenoonAbsent: 0,
+    afternoonPresent: 0,
+    afternoonAbsent: 0,
+  });
+
+  // ✅ Compute summary whenever attendance changes
+  useEffect(() => {
+    if (!attendance.length) {
+      setSummary({
+        workingDays: 0,
+        forenoonPresent: 0,
+        forenoonAbsent: 0,
+        afternoonPresent: 0,
+        afternoonAbsent: 0,
+      });
+      return;
+    }
+
+    let workingDays = attendance.length;
+    let forenoonPresent = 0;
+    let forenoonAbsent = 0;
+    let afternoonPresent = 0;
+    let afternoonAbsent = 0;
+
+    attendance.forEach((rec) => {
+      if (rec.forenoon === "Present") forenoonPresent++;
+      if (rec.forenoon === "Absent") forenoonAbsent++;
+      if (rec.afternoon === "Present") afternoonPresent++;
+      if (rec.afternoon === "Absent") afternoonAbsent++;
+    });
+
+    setSummary({
+      workingDays,
+      forenoonPresent,
+      forenoonAbsent,
+      afternoonPresent,
+      afternoonAbsent,
+    });
+  }, [attendance]);
+
   return (
     <DashboardLayout title="All Attendance History">
       {!mounted ? (
@@ -136,61 +180,87 @@ export default function AllAttendanceHistoryPage() {
           </div>
 
           {/* Filters */}
-         {/* Filters */}
-<div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-  <div>
-    <label className="block text-sm mb-1">Start Date</label>
-    <input
-      type="date"
-      value={startDate}
-      onChange={(e) => setStartDate(e.target.value)}
-      className="w-full border rounded p-2"
-    />
-  </div>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+            <div>
+              <label className="block text-sm mb-1">Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full border rounded p-2"
+              />
+            </div>
 
-  <div>
-    <label className="block text-sm mb-1">End Date</label>
-    <input
-      type="date"
-      value={endDate}
-      onChange={(e) => setEndDate(e.target.value)}
-      className="w-full border rounded p-2"
-    />
-  </div>
+            <div>
+              <label className="block text-sm mb-1">End Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full border rounded p-2"
+              />
+            </div>
 
-  <div className="md:col-span-2">
-    <label className="block text-sm mb-1">Teacher</label>
-    <Select
-      className="w-full"
-      options={teachers.map((t) => ({
-        value: t.id,
-        label: `${t.name} (${t.email}) (${t.employeeId})`,
-        teacher: t,
-      }))}
-      value={
-        selectedTeacher
-          ? {
-              value: selectedTeacher.id,
-              label: `${selectedTeacher.name} (${selectedTeacher.email}) (${selectedTeacher.employeeId})`,
-              teacher: selectedTeacher,
-            }
-          : null
-      }
-      onChange={(option) => setSelectedTeacher(option ? option.teacher : null)}
-      isClearable
-    />
-  </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm mb-1">Teacher</label>
+              <Select
+                className="w-full"
+                options={teachers.map((t) => ({
+                  value: t.id,
+                  label: `${t.name} (${t.email}) (${t.employeeId})`,
+                  teacher: t,
+                }))}
+                value={
+                  selectedTeacher
+                    ? {
+                        value: selectedTeacher.id,
+                        label: `${selectedTeacher.name} (${selectedTeacher.email}) (${selectedTeacher.employeeId})`,
+                        teacher: selectedTeacher,
+                      }
+                    : null
+                }
+                onChange={(option) =>
+                  setSelectedTeacher(option ? option.teacher : null)
+                }
+                isClearable
+              />
+            </div>
 
-  <div className="flex justify-end">
-    <Button
-      onClick={handleDeleteByRange}
-      className="w-full md:w-32 bg-red-600 hover:bg-red-700"
-    >
-      Delete
-    </Button>
-  </div>
-</div>
+            <div className="flex justify-end">
+              <Button
+                onClick={handleDeleteByRange}
+                className="w-full md:w-32 bg-red-600 hover:bg-red-700"
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
 
+          {/* ✅ Summary Section */}
+          {selectedTeacher && (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-6">
+              <div className="p-4 border rounded shadow">
+                <p className="font-semibold">Working Days</p>
+                <p>{summary.workingDays}</p>
+              </div>
+              <div className="p-4 border rounded shadow">
+                <p className="font-semibold">Forenoon Present</p>
+                <p>{summary.forenoonPresent}</p>
+              </div>
+              <div className="p-4 border rounded shadow">
+                <p className="font-semibold">Forenoon Absent</p>
+                <p>{summary.forenoonAbsent}</p>
+              </div>
+              <div className="p-4 border rounded shadow">
+                <p className="font-semibold">Afternoon Present</p>
+                <p>{summary.afternoonPresent}</p>
+              </div>
+              <div className="p-4 border rounded shadow">
+                <p className="font-semibold">Afternoon Absent</p>
+                <p>{summary.afternoonAbsent}</p>
+              </div>
+            </div>
+          )}
 
           {/* Results */}
           {loading ? (
@@ -211,7 +281,9 @@ export default function AllAttendanceHistoryPage() {
               <TableBody>
                 {attendance.map((rec) => (
                   <TableRow key={rec.id}>
-                    <TableCell>{format(new Date(rec.date), "yyyy-MM-dd")}</TableCell>
+                    <TableCell>
+                      {format(new Date(rec.date), "yyyy-MM-dd")}
+                    </TableCell>
                     <TableCell>{rec.forenoon}</TableCell>
                     <TableCell>{rec.afternoon}</TableCell>
                     <TableCell>

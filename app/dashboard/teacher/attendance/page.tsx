@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 
 type AttendanceRecord = {
@@ -21,6 +22,7 @@ export default function TeacherAttendancePage() {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [workingDays, setWorkingDays] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [searchDate, setSearchDate] = useState("");
 
   const fetchAttendance = useCallback(async () => {
     try {
@@ -39,20 +41,47 @@ export default function TeacherAttendancePage() {
     fetchAttendance();
   }, [fetchAttendance]);
 
+  // Filtered attendance by date
+  const filteredAttendance = useMemo(() => {
+    if (!searchDate) return attendance;
+    return attendance.filter((rec) => rec.date.slice(0, 10) === searchDate);
+  }, [attendance, searchDate]);
+
+  // Counts
+  const counts = useMemo(() => {
+    let forenoonPresent = 0,
+      forenoonAbsent = 0,
+      afternoonPresent = 0,
+      afternoonAbsent = 0;
+
+    attendance.forEach((rec) => {
+      if (rec.forenoon?.toLowerCase() === "present") forenoonPresent++;
+      if (rec.forenoon?.toLowerCase() === "absent") forenoonAbsent++;
+      if (rec.afternoon?.toLowerCase() === "present") afternoonPresent++;
+      if (rec.afternoon?.toLowerCase() === "absent") afternoonAbsent++;
+    });
+
+    return { forenoonPresent, forenoonAbsent, afternoonPresent, afternoonAbsent };
+  }, [attendance]);
+
   const handleBack = () => {
-    if (window.history.length > 1) {
-      router.back();
-    } else {
+    
       router.push("/dashboard/teacher");
-    }
+    
   };
 
   return (
     <DashboardLayout title="Attendance">
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between mb-4">
         <Button variant="outline" onClick={handleBack}>
           Back
         </Button>
+        <Input
+          type="date"
+          value={searchDate}
+          onChange={(e) => setSearchDate(e.target.value)}
+          className="max-w-[200px]"
+        />
       </div>
 
       <div className="p-6 space-y-6">
@@ -62,6 +91,12 @@ export default function TeacherAttendancePage() {
             <p className="text-sm text-gray-500">
               Total Working Days: <span className="font-semibold">{workingDays}</span>
             </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-sm">
+              <p>Forenoon Present: <span className="font-semibold">{counts.forenoonPresent}</span></p>
+              <p>Forenoon Absent: <span className="font-semibold">{counts.forenoonAbsent}</span></p>
+              <p>Afternoon Present: <span className="font-semibold">{counts.afternoonPresent}</span></p>
+              <p>Afternoon Absent: <span className="font-semibold">{counts.afternoonAbsent}</span></p>
+            </div>
           </CardHeader>
 
           <CardContent>
@@ -69,7 +104,7 @@ export default function TeacherAttendancePage() {
               <div className="flex justify-center py-6">
                 <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
               </div>
-            ) : attendance.length === 0 ? (
+            ) : filteredAttendance.length === 0 ? (
               <p className="text-gray-500 text-center py-6">
                 No attendance records found.
               </p>
@@ -84,7 +119,7 @@ export default function TeacherAttendancePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {attendance.map(({ id, date, forenoon, afternoon, markedBy }) => (
+                  {filteredAttendance.map(({ id, date, forenoon, afternoon, markedBy }) => (
                     <TableRow key={id}>
                       <TableCell>{new Date(date).toLocaleDateString()}</TableCell>
                       <TableCell>{forenoon}</TableCell>

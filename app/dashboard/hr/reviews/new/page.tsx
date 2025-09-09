@@ -14,8 +14,9 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { is, se } from "date-fns/locale";
 
-type Teacher = { id: string; name: string | null; email: string };
+type Teacher = { id: string; name: string | null; email: string;role: string | null };
 
 export default function NewReviewPage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function NewReviewPage() {
   const [comment, setComment] = useState("");
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
-
+  const [isLoading, setLoading] = useState(false);
   useEffect(() => {
     fetch("/api/hr/users/teachers")
       .then(r => r.json())
@@ -35,23 +36,51 @@ export default function NewReviewPage() {
   const selectedTeacher = teachers.find(t => t.id === teacherId);
 
   async function submit() {
-    setError("");
-    if (!teacherId) return setError("Select a teacher");
-    if (rating < 1 || rating > 5) return setError("Rating 1–5");
+  if (isLoading) return;
+  setLoading(true);
+  setError("");
 
+  if (!teacherId) {
+    setError("Select a teacher");
+    setLoading(false);
+    return;
+  }
+  if (rating < 1 || rating > 5) {
+    setError("Rating 1–5");
+    setLoading(false);
+    return;
+  }
+
+  try {
     const res = await fetch("/api/hr/reviews", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ teacherId, rating, comment }),
     });
 
-    const data = await res.json();
+    let data: any = {};
+    try {
+      data = await res.json();
+    } catch {}
+
     if (!res.ok) {
-      setError(data.error || "Failed");
+      setError(data.error || "Failed to save review");
+      setLoading(false);
       return;
     }
+
+    setLoading(false);
+    setTeacherId("");
+    setRating(5);
+    setComment("");
     router.push("/dashboard/hr/reviews");
+  } catch (error) {
+    console.error(error);
+    setError("Something went wrong. Check console.");
+    setLoading(false);
   }
+}
+
 
   return (
     <DashboardLayout title="New Review">

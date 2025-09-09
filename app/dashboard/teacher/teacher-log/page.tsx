@@ -26,7 +26,7 @@ export default function TeacherTopicsPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const teacherId = session?.user?.id || null;
-
+  const [loading, setLoading] = useState(false);
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -34,6 +34,8 @@ export default function TeacherTopicsPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    if (loading) return;
+    setLoading(true);
     e.preventDefault();
     setMessage("");
 
@@ -60,6 +62,7 @@ export default function TeacherTopicsPage() {
     } else {
       setMessage("❌ Failed to save topic");
     }
+    setLoading(false);
   };
 
   const handleBack = () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { format } from "date-fns";
 import {
   Table,
@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 
 interface User {
   id: string;
@@ -34,6 +35,10 @@ export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(false);
   const [globalVisible, setGlobalVisible] = useState(false);
+
+  // 🔍 search + date
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchDate, setSearchDate] = useState("");
 
   // ✅ Fetch reviews
   const fetchReviews = async () => {
@@ -65,7 +70,7 @@ export default function AdminReviewsPage() {
       });
       if (res.ok) {
         setGlobalVisible(!globalVisible);
-        fetchReviews(); // Refresh reviews to reflect changes
+        fetchReviews(); // Refresh reviews
       } else {
         alert("Failed to update visibility");
       }
@@ -74,11 +79,29 @@ export default function AdminReviewsPage() {
     }
   };
 
+  // ✅ Filter reviews
+  const filteredReviews = useMemo(() => {
+    return reviews.filter((r) => {
+      const query = searchQuery.toLowerCase();
+      const matchesName =
+        r.reviewer?.name?.toLowerCase().includes(query) ||
+        r.reviewer?.email?.toLowerCase().includes(query) ||
+        r.teacher?.name?.toLowerCase().includes(query) ||
+        r.teacher?.email?.toLowerCase().includes(query);
+
+      const matchesDate = searchDate
+        ? r.createdAt.slice(0, 10) === searchDate
+        : true;
+
+      return matchesName && matchesDate;
+    });
+  }, [reviews, searchQuery, searchDate]);
+
   return (
     <DashboardLayout title="Manage Reviews">
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <h1 className="text-xl font-bold">Teacher Reviews</h1>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Visible to Teachers</span>
@@ -86,10 +109,26 @@ export default function AdminReviewsPage() {
           </div>
         </div>
 
+        {/* Search + Date */}
+        <div className="flex flex-wrap gap-4">
+          <Input
+            placeholder="Search by reviewer/teacher name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-sm"
+          />
+          <Input
+            type="date"
+            value={searchDate}
+            onChange={(e) => setSearchDate(e.target.value)}
+            className="max-w-[200px]"
+          />
+        </div>
+
         {/* Review Table */}
         {loading ? (
           <p className="text-gray-500">Loading reviews...</p>
-        ) : reviews.length === 0 ? (
+        ) : filteredReviews.length === 0 ? (
           <p className="text-gray-500">No reviews found.</p>
         ) : (
           <Table>
@@ -104,9 +143,11 @@ export default function AdminReviewsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {reviews.map((review) => (
+              {filteredReviews.map((review) => (
                 <TableRow key={review.id}>
-                  <TableCell>{format(new Date(review.createdAt), "yyyy-MM-dd")}</TableCell>
+                  <TableCell>
+                    {format(new Date(review.createdAt), "yyyy-MM-dd")}
+                  </TableCell>
                   <TableCell>
                     {review.reviewer?.name} ({review.reviewer?.email})
                   </TableCell>
