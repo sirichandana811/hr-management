@@ -63,7 +63,7 @@ export default function HomePage() {
               },
               {
                 title: "Placements",
-                desc: "17,000+ students trained with top packages up to ₹32 LPA across leading companies.",
+                desc: "17,000+ students trained across leading companies.",
               },
               {
                 title: "Community",
@@ -88,10 +88,9 @@ export default function HomePage() {
       {/* Stats Section */}
       <section className="py-20 px-6 bg-gradient-to-r from-indigo-600 to-blue-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-12 text-center relative z-10">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 text-center relative z-10">
           {[
             { stat: "17K+", label: "Students Trained" },
-            { stat: "₹32 LPA", label: "Top Package" },
             { stat: "100+", label: "Partner Companies" },
           ].map((s) => (
             <motion.div
