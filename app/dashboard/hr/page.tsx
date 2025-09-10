@@ -169,7 +169,7 @@ export default async function HRDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Calendar className="mr-2 h-5 w-5" />
-                Leave Management
+                Employee Leave Management
               </CardTitle>
               <CardDescription>Track attendance and manage leave requests</CardDescription>
             </CardHeader>
@@ -226,6 +226,28 @@ export default async function HRDashboard() {
                 </Button>
                  <Button className="w-full justify-start bg-transparent" variant="outline">
                   <Link href="/dashboard/hr/attendance/view" prefetch>View Attendance</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <DollarSign className="mr-2 h-5 w-5" />
+                Leave Management
+              </CardTitle>
+              <CardDescription>apply for leave</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/leaves/apply" prefetch>Apply Leave</Link>
+                </Button>
+                <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/leaves/history" prefetch>Leave History</Link>
+                </Button>
+                 <Button className="w-full justify-start bg-transparent" variant="outline">
+                  <Link href="/dashboard/hr/leaves/types" prefetch>View Leave</Link>
                 </Button>
               </div>
             </CardContent>

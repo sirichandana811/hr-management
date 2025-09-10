@@ -1,14 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
 
-export async function GET() {
+
+export async function GET(req: Request) {
   try {
     // Fetch all leave requests with user info
+    const { searchParams } = new URL(req.url);
+    const role = searchParams.get("role") || "HR"; 
     const leaves = await prisma.leaveRequest.findMany({
+      where: { role },
       orderBy: { createdAt: "desc" },
       include: {
-        user: { select: { id: true, name: true } },
+        user: { select: { id: true, name: true, email: true, employeeId: true } },
         leaveType: { select: { id: true, name: true } },
       },
     });
@@ -18,6 +21,8 @@ export async function GET() {
       id: l.id,
       userId: l.userId,
       userName: l.user?.name || "-",
+      userEmail: l.user?.email || "-",
+      employeeId: l.user?.employeeId || "-",
       leaveTypeId: l.leaveTypeId,
       leaveTypeName: l.leaveTypeName || l.leaveType?.name || "-",
       startDate: l.startDate.toISOString(),

@@ -89,7 +89,7 @@ export async function POST(req: Request) {
         days,
         reason,
         status: "PENDING",
-        role: "TEACHER"
+        role: "HR"
       },
     });
 

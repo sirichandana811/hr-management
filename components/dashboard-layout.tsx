@@ -42,7 +42,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
           { icon: Users, label: "User Management", href: "/dashboard/admin/users" },
           { icon: UserCheck, label: "Attendance", href: "/dashboard/admin/attendance" },
           { icon: HelpCircle, label: "Support Tickets", href: "/dashboard/admin/ticket" },
-          { icon: FileText, label: "Leave Management", href: "/dashboard/admin/leave-management" },
+          { icon: FileText, label: "Leave Management", href: "/dashboard/admin/leave-management/action" },
           { icon: BookOpen, label: "Teacher Log", href: "/dashboard/teacher-log-view" },
           { icon: FileText, label: "Reviews", href: "/dashboard/admin/reviews" },
         ]

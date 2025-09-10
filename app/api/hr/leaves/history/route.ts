@@ -9,7 +9,8 @@ export async function GET(req: Request) {
     if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
 
     const leaves = await prisma.leaveRequest.findMany({
-      where: { userId ,role: "TEACHER"},
+
+      where: { userId, role: "HR" },
       orderBy: { createdAt: "desc" },
     });
 

@@ -6,6 +6,7 @@ export async function GET() {
   try {
     // Fetch all leave requests with user info
     const leaves = await prisma.leaveRequest.findMany({
+      where: {role: "TEACHER"},
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { id: true, name: true } },

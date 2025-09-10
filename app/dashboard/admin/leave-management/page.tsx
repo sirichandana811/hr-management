@@ -200,6 +200,7 @@ export default function HRLeaveManagementPage() {
   return (
     <DashboardLayout title="HR Leave Management">
       <div className="max-w-6xl mx-auto mt-10 space-y-6">
+        
         {message && <p className="text-center text-red-600">{message}</p>}
 
         {/* 🔹 Add/Edit Leave Type Modal */}
@@ -339,90 +340,7 @@ export default function HRLeaveManagementPage() {
             </TableBody>
           </Table>
         </div>
-
-        {/* Leaves Table */}
-        {loading ? (
-          <p>Loading leaves...</p>
-        ) : (
-          <div className="overflow-x-auto border rounded p-4">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="font-semibold text-lg">Leave Requests</h2>
-              <input
-                type="text"
-                placeholder="Search leave requests..."
-                value={searchLeaves}
-                onChange={(e) => setSearchLeaves(e.target.value)}
-                className="border p-2 rounded w-64"
-              />
-            </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Leave Type</TableHead>
-                  <TableHead>From</TableHead>
-                  <TableHead>To</TableHead>
-                  <TableHead>Days</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Reason</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLeaves.map((leave) => (
-                  <TableRow key={leave.id}>
-                    <TableCell>{leave.userName}</TableCell>
-                    <TableCell>{leave.leaveTypeName}</TableCell>
-                    <TableCell>
-                      {new Date(leave.startDate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(leave.endDate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>{leave.days}</TableCell>
-                    <TableCell>{leave.status}</TableCell>
-                    <TableCell>{leave.reason || "-"}</TableCell>
-                    <TableCell className="space-x-2">
-                      {leave.status === "PENDING" && (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={() => handleAction(leave.id, "APPROVE")}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleAction(leave.id, "REJECT")}
-                          >
-                            Reject
-                          </Button>
-                        </>
-                      )}
-                      {leave.status === "APPROVED" && (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleAction(leave.id, "CANCEL")}
-                        >
-                          Cancel
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filteredLeaves.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center">
-                      No leave requests found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+        
       </div>
     </DashboardLayout>
   );

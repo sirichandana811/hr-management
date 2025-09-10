@@ -233,7 +233,7 @@ model LeaveRequest {
   days          Int
   reason        String?
   status        LeaveStatus @default(PENDING)
-
+  role          UserRole?
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
 
