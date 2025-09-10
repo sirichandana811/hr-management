@@ -1,16 +1,20 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { motion } from "framer-motion"
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-indigo-50 text-gray-900">
-      
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center text-center px-6 py-24 relative overflow-hidden">
-        {/* Decorative gradient background */}
         <div className="absolute inset-0 bg-gradient-to-t from-indigo-100 via-transparent to-transparent blur-3xl opacity-40" />
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
@@ -28,8 +32,9 @@ export default function HomePage() {
           transition={{ duration: 0.8 }}
           className="text-lg md:text-xl text-gray-600 max-w-2xl mb-10 relative z-10"
         >
-          Where unemployed meets unstoppable — empowering careers, fostering growth, 
-          and crafting professionals with world-class training, mentorship, and placement support.
+          Where unemployed meets unstoppable — empowering careers, fostering
+          growth, and crafting professionals with world-class training,
+          mentorship, and placement support.
         </motion.p>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -38,11 +43,7 @@ export default function HomePage() {
           className="flex gap-4 relative z-10"
         >
           <Link href="/auth/signin">
-            <Button
-              variant="default"
-              size="lg"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg rounded-xl px-6"
-            >
+            <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700">
               Sign In
             </Button>
           </Link>
@@ -70,15 +71,17 @@ export default function HomePage() {
                 desc: "A supportive ecosystem of learners and mentors — built by engineers, for engineers.",
               },
             ].map((item) => (
-              <motion.div
-                key={item.title}
-                whileHover={{ y: -8 }}
-                className="p-8 rounded-2xl shadow-md bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 hover:shadow-xl transition-all"
-              >
-                <h3 className="text-xl font-semibold mb-3 text-indigo-700">
-                  {item.title}
-                </h3>
-                <p className="text-gray-600">{item.desc}</p>
+              <motion.div key={item.title} whileHover={{ y: -8 }}>
+                <Card className="bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 hover:shadow-xl transition-all">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-indigo-700">
+                      {item.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600">{item.desc}</p>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </div>
@@ -110,37 +113,54 @@ export default function HomePage() {
       {/* Testimonials Section */}
       <section className="py-20 px-6 bg-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8">What Students Say</h2>
-          <motion.blockquote
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">
+            What Students Say
+          </h2>
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-indigo-50 border border-indigo-100 rounded-2xl p-8 shadow-sm"
           >
-            <p className="text-lg md:text-xl text-gray-700 italic mb-4">
-              “Trailbliz isn’t just training, it’s a career transformation. 
-              The mentorship and placement prep gave me the confidence to land my dream job.”
-            </p>
-            <footer className="text-indigo-700 font-semibold">— A Happy Alumni</footer>
-          </motion.blockquote>
+            <Card className="bg-indigo-50 border border-indigo-100 shadow-sm">
+              <CardContent className="p-8">
+                <p className="text-lg md:text-xl text-gray-700 italic mb-4">
+                  “Trailbliz isn’t just training, it’s a career transformation.
+                  The mentorship and placement prep gave me the confidence to
+                  land my dream job.”
+                </p>
+                <footer className="text-indigo-700 font-semibold">
+                  — A Happy Alumni
+                </footer>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-10 mt-auto">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <p>© {new Date().getFullYear()} Trailbliz (Nirudhyog). All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} Trailbliz (Nirudhyog). All rights
+            reserved.
+          </p>
           <div className="flex gap-6">
-            <a href="mailto:contact@nirudhyog.com" className="hover:text-white transition-colors">
+            <a
+              href="mailto:contact@nirudhyog.com"
+              className="hover:text-white transition-colors"
+            >
               contact@nirudhyog.com
             </a>
-            <a href="tel:+918121398942" className="hover:text-white transition-colors">
+            <a
+              href="tel:+918121398942"
+              className="hover:text-white transition-colors"
+            >
               +91 81213 98942
             </a>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }

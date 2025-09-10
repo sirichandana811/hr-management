@@ -8,7 +8,7 @@ import Link from "next/link"
 async function getAdminStats() {
   const [totalUsers, openTickets, recentUsers] = await Promise.all([
     prisma.user.count(),
-    prisma.SupportTicket.count({
+    prisma.supportTicket.count({
       where: { status: { in: ["OPEN", "IN_PROGRESS"] } },
     }),
     prisma.user.count({
@@ -53,7 +53,7 @@ export default async function AdminDashboard() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600">Overview of your HRMS system</p>
+          <p className="text-gray-600">Overview of system statistics and management tools</p>
         </div>
 
         {/* Stats Cards */}
