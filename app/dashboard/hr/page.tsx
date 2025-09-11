@@ -159,7 +159,7 @@ export default async function HRDashboard() {
                   <Link href="/dashboard/hr/employees/users" prefetch>View All Employees</Link>
                 </Button>
                 <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/newEmployee" prefetch>Add New Employee</Link>
+                  <Link href="/dashboard/hr/employees/users/new" prefetch>Add New Employee</Link>
                 </Button>
               </div>
             </CardContent>

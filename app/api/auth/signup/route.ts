@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       image,} = body;
 
     // Basic validation
-    if (!name || !email || !password || !role) {
+    if (!name || !email || !password || !role || !employeeId) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
     }
 

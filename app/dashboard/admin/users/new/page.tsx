@@ -195,6 +195,7 @@ export default function NewUserPage() {
                     placeholder="Employee ID"
                     value={formData.employeeId}
                     onChange={(e) => handleInputChange("employeeId", e.target.value)}
+                    required
                   />
                 </div>
                 <div className="space-y-2">
