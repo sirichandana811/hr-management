@@ -67,7 +67,7 @@ export async function DELETE(req: Request) {
         { status: 400 }
       );
     }
-
+    
     const where: any = {
       role: "TEACHER", // ✅ always delete only teacher attendance
       date: {
@@ -81,7 +81,7 @@ export async function DELETE(req: Request) {
       if (name) where.teacher.name = name;
       if (email) where.teacher.email = email;
     }
-
+    
     // ✅ Delete many
     const deleted = await prisma.teacherAttendance.deleteMany({
       where,
