@@ -9,7 +9,7 @@ async function getAdminStats() {
   const [totalUsers, openTickets, recentUsers] = await Promise.all([
     prisma.user.count(),
     prisma.supportTicket.count({
-      where: { status: { in: ["OPEN", "IN_PROGRESS"] } },
+      where: { status: { in: ["OPEN"] } },
     }),
     prisma.user.count({
       where: {
