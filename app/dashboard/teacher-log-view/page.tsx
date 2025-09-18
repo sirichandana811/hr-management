@@ -45,11 +45,13 @@ export default function HRTeachingLogReviewPage() {
   const [logs, setLogs] = useState<TeachingLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedDate, setSelectedDate] = useState("");
-
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch teacher list once
+  // Fetch teachers
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
@@ -65,7 +67,7 @@ export default function HRTeachingLogReviewPage() {
     fetchTeachers();
   }, []);
 
-  // Fetch logs when teacher is selected
+  // Fetch logs with pagination
   useEffect(() => {
     if (!selectedTeacher) {
       setLogs([]);
@@ -74,9 +76,16 @@ export default function HRTeachingLogReviewPage() {
     const fetchLogs = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/teacher-log?teacherId=${selectedTeacher.id}`);
+        const res = await fetch(
+          `/api/teacher-log?teacherId=${selectedTeacher.id}&page=${page}&limit=50`
+        );
         const data = await res.json();
-        setLogs(Array.isArray(data) ? data : []);
+        if (data.logs) {
+          setLogs(data.logs);
+          setTotalPages(data.totalPages);
+        } else {
+          setLogs([]);
+        }
       } catch (err) {
         console.error("Failed to fetch logs", err);
         setLogs([]);
@@ -85,9 +94,9 @@ export default function HRTeachingLogReviewPage() {
       }
     };
     fetchLogs();
-  }, [selectedTeacher]);
+  }, [selectedTeacher, page]);
 
-  // Filter teachers for search
+  // Filter teachers
   const filteredTeachers = useMemo(() => {
     const q = teacherSearch.toLowerCase();
     return teachers.filter(
@@ -102,13 +111,12 @@ export default function HRTeachingLogReviewPage() {
     setSelectedTeacher(teacher);
     setTeacherSearch(`${teacher.name} (${teacher.employeeId})`);
     setShowDropdown(false);
+    setPage(1); // reset pagination on teacher change
   };
 
-  const handleBack = () => {
-     router.back();
-  };
+  const handleBack = () => router.back();
 
-  // Close dropdown on outside click
+  // Close dropdown
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -119,16 +127,23 @@ export default function HRTeachingLogReviewPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ Filter logs by selected date
+  // Apply date filters
   const filteredLogs = useMemo(() => {
-    if (!selectedDate) return logs;
-    return logs.filter(
-      (log) =>
-        new Date(log.date).toISOString().split("T")[0] === selectedDate
-    );
-  }, [logs, selectedDate]);
+    let result = logs;
+    if (fromDate) {
+      result = result.filter(
+        (log) => new Date(log.date).toISOString().split("T")[0] >= fromDate
+      );
+    }
+    if (toDate) {
+      result = result.filter(
+        (log) => new Date(log.date).toISOString().split("T")[0] <= toDate
+      );
+    }
+    return result;
+  }, [logs, fromDate, toDate]);
 
-  // ✅ Format time into 12hr with AM/PM
+  // Format time
   const formatTime = (time: string) => {
     if (!time) return "-";
     const d = new Date(time);
@@ -144,7 +159,7 @@ export default function HRTeachingLogReviewPage() {
         </Button>
       </div>
 
-      {/* Teacher Search Input */}
+      {/* Teacher Search */}
       <div className="mb-4 relative" ref={dropdownRef}>
         <Input
           placeholder="Search and select a teacher..."
@@ -174,18 +189,31 @@ export default function HRTeachingLogReviewPage() {
         )}
       </div>
 
-      {/* ✅ Date Filter */}
-      <div className="mb-4">
-        <Input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          disabled={!selectedTeacher}
-          className="w-fit"
-        />
+      {/* Date Filter */}
+      <div className="mb-4 flex gap-4">
+        <div>
+          <label className="text-sm text-gray-600">From Date</label>
+          <Input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            disabled={!selectedTeacher}
+            className="w-fit"
+          />
+        </div>
+        <div>
+          <label className="text-sm text-gray-600">To Date</label>
+          <Input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            disabled={!selectedTeacher}
+            className="w-fit"
+          />
+        </div>
       </div>
 
-      {/* Table */}
+      {/* Logs Table */}
       {loading ? (
         <div className="py-8 flex justify-center">
           <Loader2 className="h-6 w-6 animate-spin" />
@@ -193,44 +221,65 @@ export default function HRTeachingLogReviewPage() {
       ) : !selectedTeacher ? (
         <p className="text-sm text-muted-foreground">Please select a teacher to view logs.</p>
       ) : filteredLogs.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No logs found for this teacher {selectedDate ? `on ${selectedDate}` : ""}.
-        </p>
+        <p className="text-sm text-muted-foreground">No logs found for this teacher.</p>
       ) : (
-        <div className="overflow-x-auto rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>College</TableHead>
-                <TableHead>Branch</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Class</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Topic</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Start Time</TableHead>
-                <TableHead>End Time</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredLogs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell>{log.college || "-"}</TableCell>
-                  <TableCell>{log.branch || "-"}</TableCell>
-                  <TableCell>{log.year || "-"}</TableCell>
-                  <TableCell>{log.className}</TableCell>
-                  <TableCell>{log.subject}</TableCell>
-                  <TableCell>{log.topic}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">{log.description}</TableCell>
-                  <TableCell>{new Date(log.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{formatTime(log.startTime)}</TableCell>
-                  <TableCell>{formatTime(log.endTime)}</TableCell>
+        <>
+          <div className="overflow-x-auto rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>College</TableHead>
+                  <TableHead>Branch</TableHead>
+                  <TableHead>Year</TableHead>
+                  <TableHead>Class</TableHead>
+                  <TableHead>Subject</TableHead>
+                  <TableHead>Topic</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Start Time</TableHead>
+                  <TableHead>End Time</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredLogs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>{log.college || "-"}</TableCell>
+                    <TableCell>{log.branch || "-"}</TableCell>
+                    <TableCell>{log.year || "-"}</TableCell>
+                    <TableCell>{log.className}</TableCell>
+                    <TableCell>{log.subject}</TableCell>
+                    <TableCell>{log.topic}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">{log.description}</TableCell>
+                    <TableCell>{new Date(log.date).toLocaleDateString()}</TableCell>
+                    <TableCell>{formatTime(log.startTime)}</TableCell>
+                    <TableCell>{formatTime(log.endTime)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex justify-center mt-6 space-x-2">
+            <Button
+              variant="outline"
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Previous
+            </Button>
+            <span className="px-4 py-2">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </>
       )}
     </DashboardLayout>
   );

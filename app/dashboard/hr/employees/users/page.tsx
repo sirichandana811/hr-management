@@ -3,15 +3,27 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Edit, Trash2 } from "lucide-react";
 
-type UserRole = "TEACHER" | "CONTENT_CREATOR" | "SUPPORT_STAFF" | "EMPLOYEE" | "HR" | "ADMIN";
+type UserRole =
+  | "TEACHER"
+  | "CONTENT_CREATOR"
+  | "SUPPORT_STAFF"
+  | "EMPLOYEE"
+  | "HR"
+  | "ADMIN";
 
 interface User {
   id: string;
@@ -28,26 +40,35 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // pagination state
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 50; // how many users per page
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const message = searchParams.get("message");
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [page]);
 
   async function fetchUsers() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/hr/users");
+      const res = await fetch(`/api/hr/users?page=${page}&limit=${limit}`);
       if (!res.ok) throw new Error("Failed to fetch users");
       const data = await res.json();
+
       // Exclude HR and ADMIN users
-      const filtered = data.filter(
+      const filtered = data.users.filter(
         (user: User) => user.role !== "HR" && user.role !== "ADMIN"
       );
+
       setUsers(filtered);
+      setTotalPages(data.totalPages);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -123,51 +144,76 @@ export default function UsersPage() {
         ) : filteredUsers.length === 0 ? (
           <p className="text-center text-gray-500">No users found.</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Employee ID</TableHead>
-                <TableHead>Active</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.name || "-"}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role || "-"}</TableCell>
-                  <TableCell>{user.department || "-"}</TableCell>
-                  <TableCell>{user.employeeId || "-"}</TableCell>
-                  <TableCell>{user.isActive ? "Yes" : "No"}</TableCell>
-                  <TableCell className="space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        router.push(`/dashboard/hr/employees/users/${user.id}/edit`)
-                      }
-                      title="Edit user"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDelete(user.id)}
-                      title="Delete user"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Employee ID</TableHead>
+                  <TableHead>Active</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.name || "-"}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.role || "-"}</TableCell>
+                    <TableCell>{user.department || "-"}</TableCell>
+                    <TableCell>{user.employeeId || "-"}</TableCell>
+                    <TableCell>{user.isActive ? "Yes" : "No"}</TableCell>
+                    <TableCell className="space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/hr/employees/users/${user.id}/edit`
+                          )
+                        }
+                        title="Edit user"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(user.id)}
+                        title="Delete user"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            {/* Pagination Controls */}
+            <div className="flex justify-center mt-6 space-x-2">
+              <Button
+                variant="outline"
+                disabled={page === 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                Previous
+              </Button>
+              <span className="px-4 py-2">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                disabled={page === totalPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </>
         )}
       </div>
     </DashboardLayout>

@@ -33,12 +33,11 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
   const getNavigationItems = () => {
     const role = session?.user?.role
-    const baseItems = [{ icon: Home, label: "Dashboard", href: getDashboardPath(role) }]
-
+    
     switch (role) {
       case "ADMIN":
         return [
-          ...baseItems,
+          { icon: Home, label: "Dashboard", href: "/dashboard/admin" },
           { icon: Users, label: "User Management", href: "/dashboard/admin/users" },
           { icon: UserCheck, label: "Attendance", href: "/dashboard/admin/attendance" },
           { icon: HelpCircle, label: "Support Tickets", href: "/dashboard/admin/ticket" },
@@ -48,22 +47,21 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
         ]
       case "HR":
         return [
-          ...baseItems,
+          { icon: Home, label: "Dashboard", href: "/dashboard/hr" },
           { icon: Users, label: "Employees", href: "/dashboard/hr/employees/users" },
-          { icon: FileText, label: "Reviews", href: "/dashboard/hr/reviews" },
           { icon: FileText, label: "Leave Requests", href: "/dashboard/hr/leaves" },
         ]
       case "TEACHER":
         return [
-          ...baseItems,
+          { icon: Home, label: "Dashboard", href: "/dashboard/teacher" },
           { icon: BookOpen, label: "My Topics", href: "/dashboard/teacher/teacher-log/view" },
-          { icon: FileText, label: "Reviews", href: "/dashboard/reviews" },
+          { icon: FileText, label: "Reviews", href: "/dashboard/teacher/reviews" },
           { icon: FileText, label: "Leave Requests", href: "/dashboard/teacher/leaves/history" },
           { icon: UserCheck, label: "Attendance", href: "/dashboard/teacher/attendance" },
         ]
       default:
         return [
-          ...baseItems,
+          { icon: Home, label: "Dashboard", href: "/dashboard/employee" },
           { icon: FileText, label: "My Profile", href: "/dashboard/employee/profile" },
           { icon: HelpCircle, label: "Support", href: "/dashboard/employee/support" },
         ]
@@ -75,8 +73,6 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
       ADMIN: "/dashboard/admin",
       HR: "/dashboard/hr",
       TEACHER: "/dashboard/teacher",
-      CONTENT_CREATOR: "/dashboard/content",
-      SUPPORT_STAFF: "/dashboard/support",
       EMPLOYEE: "/dashboard/employee",
     }
     return role ? roleRoutes[role as keyof typeof roleRoutes] : "/dashboard/employee"

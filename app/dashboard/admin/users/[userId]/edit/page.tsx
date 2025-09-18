@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +26,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { UserRole } from "@prisma/client";
-import { useParams } from "next/navigation";
 
 const roleOptions = [
   { value: "ADMIN", label: "Administrator" },
@@ -48,6 +47,7 @@ interface User {
   address: string | null;
   dateOfJoining: string | null; // ISO string
   isActive: boolean;
+  skills: string[]; // ✅ Added
 }
 
 export default function EditUserPage({ params }: { params: { userId: string } }) {
@@ -70,6 +70,7 @@ export default function EditUserPage({ params }: { params: { userId: string } })
     address: "",
     dateOfJoining: "",
     isActive: true,
+    skills: [] as string[], // ✅ Added
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -102,6 +103,7 @@ export default function EditUserPage({ params }: { params: { userId: string } })
             ? new Date(userData.dateOfJoining).toISOString().substring(0, 10)
             : "",
           isActive: userData.isActive,
+          skills: userData.skills || [], // ✅ Added
         });
       } else {
         setError("Failed to load user data");
@@ -134,6 +136,7 @@ export default function EditUserPage({ params }: { params: { userId: string } })
             ? new Date(formData.dateOfJoining)
             : null,
           isActive: formData.isActive,
+          skills: formData.skills, // ✅ Added
         }),
       });
 
@@ -151,7 +154,7 @@ export default function EditUserPage({ params }: { params: { userId: string } })
     }
   };
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | string[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -318,6 +321,26 @@ export default function EditUserPage({ params }: { params: { userId: string } })
                   value={formData.dateOfJoining}
                   onChange={(e) =>
                     handleInputChange("dateOfJoining", e.target.value)
+                  }
+                />
+              </div>
+
+              {/* Skills */}
+              <div className="space-y-2">
+                <Label htmlFor="skills">Skills</Label>
+                <Input
+                  id="skills"
+                  type="text"
+                  placeholder="Enter skills separated by commas (e.g. React, Node.js, SQL)"
+                  value={formData.skills.join(", ")}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "skills",
+                      e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter((s) => s.length > 0)
+                    )
                   }
                 />
               </div>

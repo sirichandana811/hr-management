@@ -41,6 +41,7 @@ export default function NewUserPage() {
     phoneNumber: "",
     address: "",
     dateOfJoining: "",
+    skills: "", // ✅ new field
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -58,6 +59,9 @@ export default function NewUserPage() {
       const payload = {
         ...formData,
         dateOfJoining: formData.dateOfJoining || undefined,
+        skills: formData.skills
+          ? formData.skills.split(",").map((s) => s.trim()) // ✅ convert to array
+          : [],
       };
 
       const res = await fetch("/api/auth/signup", {
@@ -74,7 +78,7 @@ export default function NewUserPage() {
         return;
       }
 
-      router.push("/dashboard/hr/employees/users?message=User created successfully");
+      router.push("/dashboard/admin/users?message=User created successfully");
     } catch {
       setError("An error occurred. Please try again.");
     } finally {
@@ -87,7 +91,7 @@ export default function NewUserPage() {
       <div className="space-y-6 max-w-3xl mx-auto">
         <div className="flex items-center space-x-4 mb-6">
           <Button variant="outline" size="sm" asChild>
-            <Link href="/dashboard/hr/employees/users" prefetch>
+            <Link href="/dashboard/admin/users">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Users
             </Link>
@@ -150,8 +154,8 @@ export default function NewUserPage() {
                 </div>
               </div>
 
-              {/* Role and Department */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Role, Department, Skills */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="role">Role *</Label>
                   <Select
@@ -181,6 +185,16 @@ export default function NewUserPage() {
                     onChange={(e) => handleInputChange("department", e.target.value)}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="skills">Skills</Label>
+                  <Input
+                    id="skills"
+                    type="text"
+                    placeholder="e.g. React, Node.js, MongoDB"
+                    value={formData.skills}
+                    onChange={(e) => handleInputChange("skills", e.target.value)}
+                  />
+                </div>
               </div>
 
               {/* Employee ID, Phone Number */}
@@ -193,6 +207,7 @@ export default function NewUserPage() {
                     placeholder="Employee ID"
                     value={formData.employeeId}
                     onChange={(e) => handleInputChange("employeeId", e.target.value)}
+                    required
                   />
                 </div>
                 <div className="space-y-2">

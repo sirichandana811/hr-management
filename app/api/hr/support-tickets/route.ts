@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { title, description, priority } = createTicketSchema.parse(body)
 
-    const ticket = await prisma.SupportTicket.create({
+    const ticket = await prisma.supportTicket.create({
   
       data: {
         title,
@@ -48,7 +48,7 @@ export async function GET() {
 if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    const tickets = await prisma.SupportTicket.findMany({
+    const tickets = await prisma.supportTicket.findMany({
       where: {
         userId: session.user.id, // only show logged-in user tickets
       },

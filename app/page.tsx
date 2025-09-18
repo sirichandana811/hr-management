@@ -12,20 +12,28 @@ import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-indigo-50 text-gray-900">
+    <div className="min-h-screen flex flex-col bg-white text-black">
+      
+      {/* Top bar with Review Button */}
+      <header className="w-full flex justify-end px-6 py-4 border-b">
+        <Link href="/review">
+          <Button size="sm" className="bg-black text-white hover:bg-gray-800">
+            Give Feedback
+          </Button>
+        </Link>
+      </header>
+
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center text-center px-6 py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-indigo-100 via-transparent to-transparent blur-3xl opacity-40" />
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-5xl md:text-6xl font-extrabold mb-6 relative z-10"
         >
-          <span className="bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
-            WELCOME TO TRAILBLIZ
-          </span>
+          <span className="text-black">WELCOME TO TRAILBLIZ</span>
         </motion.h1>
+
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -36,6 +44,7 @@ export default function HomePage() {
           growth, and crafting professionals with world-class training,
           mentorship, and placement support.
         </motion.p>
+
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -43,7 +52,7 @@ export default function HomePage() {
           className="flex gap-4 relative z-10"
         >
           <Link href="/auth/signin">
-            <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700">
+            <Button size="lg" className="bg-black text-white hover:bg-gray-800">
               Sign In
             </Button>
           </Link>
@@ -54,7 +63,7 @@ export default function HomePage() {
       <section className="py-20 px-6 bg-white">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-12">
-            Why Choose <span className="text-indigo-600">Trailbliz?</span>
+            Why Choose <span className="text-black">Trailbliz?</span>
           </h2>
           <div className="grid md:grid-cols-3 gap-10">
             {[
@@ -72,9 +81,9 @@ export default function HomePage() {
               },
             ].map((item) => (
               <motion.div key={item.title} whileHover={{ y: -8 }}>
-                <Card className="bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 hover:shadow-xl transition-all">
+                <Card className="bg-white border border-gray-200 hover:shadow-xl transition-all">
                   <CardHeader>
-                    <CardTitle className="text-xl text-indigo-700">
+                    <CardTitle className="text-xl text-black">
                       {item.title}
                     </CardTitle>
                   </CardHeader>
@@ -89,8 +98,7 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 px-6 bg-gradient-to-r from-indigo-600 to-blue-600 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
+      <section className="py-20 px-6 bg-gray-100 text-black relative overflow-hidden">
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 text-center relative z-10">
           {[
             { stat: "17K+", label: "Students Trained" },
@@ -104,7 +112,7 @@ export default function HomePage() {
               transition={{ duration: 0.5 }}
             >
               <h3 className="text-5xl font-bold">{s.stat}</h3>
-              <p className="mt-2 text-lg text-indigo-100">{s.label}</p>
+              <p className="mt-2 text-lg text-gray-700">{s.label}</p>
             </motion.div>
           ))}
         </div>
@@ -122,14 +130,14 @@ export default function HomePage() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <Card className="bg-indigo-50 border border-indigo-100 shadow-sm">
+            <Card className="bg-gray-50 border border-gray-200 shadow-sm">
               <CardContent className="p-8">
-                <p className="text-lg md:text-xl text-gray-700 italic mb-4">
+                <p className="text-lg md:text-xl text-gray-800 italic mb-4">
                   “Trailbliz isn’t just training, it’s a career transformation.
                   The mentorship and placement prep gave me the confidence to
                   land my dream job.”
                 </p>
-                <footer className="text-indigo-700 font-semibold">
+                <footer className="text-black font-semibold">
                   — A Happy Alumni
                 </footer>
               </CardContent>
@@ -139,7 +147,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-10 mt-auto">
+      <footer className="bg-black text-gray-400 py-10 mt-auto">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <p>
             © {new Date().getFullYear()} Trailbliz (Nirudhyog). All rights

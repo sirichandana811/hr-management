@@ -13,9 +13,12 @@ export async function GET(req: Request) {
     const role = searchParams.get("role"); // TEACHER / HR
 
     const where: any = {};
-
+    
     // ✅ Date range filter
     if (startDate && endDate) {
+      if (startDate > endDate) {
+      return NextResponse.json({ error: "startDate cannot be greater than endDate" }, { status: 400 });
+    }
       where.date = {
         gte: new Date(startDate),
         lte: new Date(endDate),

@@ -22,7 +22,10 @@ export default function TeacherAttendancePage() {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [workingDays, setWorkingDays] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [searchDate, setSearchDate] = useState("");
+
+  // ✅ new states
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   const fetchAttendance = useCallback(async () => {
     try {
@@ -41,11 +44,24 @@ export default function TeacherAttendancePage() {
     fetchAttendance();
   }, [fetchAttendance]);
 
-  // Filtered attendance by date
+  // ✅ Filtered attendance by fromDate and toDate
   const filteredAttendance = useMemo(() => {
-    if (!searchDate) return attendance;
-    return attendance.filter((rec) => rec.date.slice(0, 10) === searchDate);
-  }, [attendance, searchDate]);
+    let result = attendance;
+
+    if (fromDate && toDate && fromDate < toDate) {
+      result = result.filter(
+        (rec) => rec.date.slice(0, 10) >= fromDate
+      ).filter(
+        (rec) => rec.date.slice(0, 10) <= toDate
+      );
+    } else if (fromDate) {
+      result = result.filter(
+        (rec) => rec.date.slice(0, 10) === fromDate
+      );
+    }
+
+    return result;
+  }, [attendance, fromDate, toDate]);
 
   // Counts
   const counts = useMemo(() => {
@@ -65,9 +81,7 @@ export default function TeacherAttendancePage() {
   }, [attendance]);
 
   const handleBack = () => {
-    
-      router.push("/dashboard/teacher");
-    
+    router.push("/dashboard/teacher");
   };
 
   return (
@@ -76,12 +90,25 @@ export default function TeacherAttendancePage() {
         <Button variant="outline" onClick={handleBack}>
           Back
         </Button>
-        <Input
-          type="date"
-          value={searchDate}
-          onChange={(e) => setSearchDate(e.target.value)}
-          className="max-w-[200px]"
-        />
+
+        {/* ✅ From - To Date Filter */}
+        <div className="flex gap-2">
+          <p>From:</p>
+          <Input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="max-w-[160px]"
+          />
+            
+          <p>To:</p>
+          <Input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="max-w-[160px]"
+          />
+        </div>
       </div>
 
       <div className="p-6 space-y-6">

@@ -43,6 +43,7 @@ export default function NewUserPage() {
     phoneNumber: "",
     address: "",
     dateOfJoining: "",
+    skills: "", // ✅ new field
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +61,9 @@ export default function NewUserPage() {
       const payload = {
         ...formData,
         dateOfJoining: formData.dateOfJoining || undefined,
+        skills: formData.skills
+          ? formData.skills.split(",").map((s) => s.trim()) // ✅ convert to array
+          : [],
       };
 
       const res = await fetch("/api/auth/signup", {
@@ -152,8 +156,8 @@ export default function NewUserPage() {
                 </div>
               </div>
 
-              {/* Role and Department */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Role, Department, Skills */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="role">Role *</Label>
                   <Select
@@ -181,6 +185,16 @@ export default function NewUserPage() {
                     placeholder="Department"
                     value={formData.department}
                     onChange={(e) => handleInputChange("department", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="skills">Skills</Label>
+                  <Input
+                    id="skills"
+                    type="text"
+                    placeholder="e.g. React, Node.js, MongoDB"
+                    value={formData.skills}
+                    onChange={(e) => handleInputChange("skills", e.target.value)}
                   />
                 </div>
               </div>

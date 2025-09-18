@@ -54,6 +54,7 @@ export async function POST(req: Request) {
     forenoon: string;
     afternoon: string;
     markedById: string;
+    role: "TEACHER" | "HR";
   }[] = await req.json();
 
   try {

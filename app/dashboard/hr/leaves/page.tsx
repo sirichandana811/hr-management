@@ -239,6 +239,14 @@ export default function HRLeaveManagementPage() {
                     )}
 
                     {leave.status === "APPROVED" && (
+                      <>
+                      <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditLeave(leave)}
+                        >
+                          Edit
+                        </Button>
                       <Button
                         size="sm"
                         variant="destructive"
@@ -247,6 +255,7 @@ export default function HRLeaveManagementPage() {
                       >
                         {processing === leave.id ? "Processing..." : "Cancel"}
                       </Button>
+                      </>
                     )}
                   </TableCell>
                 </TableRow>

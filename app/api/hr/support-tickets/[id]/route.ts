@@ -6,7 +6,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await prisma.SupportTicket.delete({
+    await prisma.supportTicket.delete({
       where: { id: params.id },
     })
     return NextResponse.json({ message: "Ticket deleted" })

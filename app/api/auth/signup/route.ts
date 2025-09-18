@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       phoneNumber,
       address,
       dateOfJoining,
-      
+      skills = [],
       image,} = body;
 
     // Basic validation
@@ -53,6 +53,7 @@ export async function POST(req: Request) {
         role,
         department,
         employeeId,
+        skills,
         phoneNumber,
         address,
         dateOfJoining: dateOfJoining ? new Date(dateOfJoining) : undefined,

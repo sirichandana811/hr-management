@@ -188,25 +188,7 @@ export default async function HRDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <DollarSign className="mr-2 h-5 w-5" />
-                Reviews
-              </CardTitle>
-              <CardDescription>Reviews</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/reviews/new" prefetch>+ Write review</Link>
-                </Button>
-                <Button className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/dashboard/hr/reviews" prefetch>Reviews Summary</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+         
 
           <Card>
             <CardHeader>

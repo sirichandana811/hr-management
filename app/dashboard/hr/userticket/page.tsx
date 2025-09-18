@@ -16,10 +16,17 @@ export default function AdminTicketPage() {
       });
   }, []);
 
-  const handleAction = async (id: string, action: string, value: string) => {
+  const handleAction = async (
+    id: string,
+    action: string,
+    value: string | boolean
+  ) => {
     try {
+      // 👇 decide whether to use PUT or PATCH
+      const method = action === "sharedToAdmin" ? "PATCH" : "PUT";
+
       const res = await fetch(`/api/hr/userticket/${id}`, {
-        method: "PUT",
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ [action]: value }),
       });
@@ -27,10 +34,7 @@ export default function AdminTicketPage() {
       if (!res.ok) throw new Error("Failed to update ticket");
       const updated = await res.json();
 
-      setTickets((prev) =>
-        prev.map((t) => (t.id === id ? updated : t))
-      );
-      
+      setTickets((prev) => prev.map((t) => (t.id === id ? updated : t)));
     } catch (err) {
       console.error(err);
       alert("Failed to update ticket");
@@ -48,37 +52,56 @@ export default function AdminTicketPage() {
             <div key={ticket.id} className="border p-4 rounded-lg shadow">
               <h2 className="font-semibold text-lg">Title: {ticket.title}</h2>
               <p className="text-gray-600">Description: {ticket.description}</p>
-              <p className="text-sm text-gray-500">By: {ticket.user?.name} ({ticket.user?.email})</p>
+              <p className="text-sm text-gray-500">
+                By: {ticket.user?.name} ({ticket.user?.email})
+              </p>
 
-            <div className="mt-3 flex gap-3">
-              {/* Status Dropdown */}
-              <select
-                value={ticket.status}
-                onChange={(e) => handleAction(ticket.id, "status", e.target.value)}
-                className="border p-2 rounded"
-              >
-                <option value="OPEN">Open</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="RESOLVED">Resolved</option>
-                <option value="CLOSED">Closed</option>
-              </select>
+              <div className="mt-3 flex gap-3">
+                {/* Status Dropdown */}
+                <select
+                  value={ticket.status}
+                  onChange={(e) =>
+                    handleAction(ticket.id, "status", e.target.value)
+                  }
+                  className="border p-2 rounded"
+                >
+                  <option value="OPEN">Open</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="RESOLVED">Resolved</option>
+                  <option value="CLOSED">Closed</option>
+                </select>
 
-              {/* Priority Dropdown */}
-              <select
-                value={ticket.priority}
-                onChange={(e) => handleAction(ticket.id, "priority", e.target.value)}
-                className="border p-2 rounded"
-              >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-                <option value="URGENT">Urgent</option>
-              </select>
+                {/* Priority Dropdown */}
+                <select
+                  value={ticket.priority}
+                  onChange={(e) =>
+                    handleAction(ticket.id, "priority", e.target.value)
+                  }
+                  className="border p-2 rounded"
+                >
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                  <option value="URGENT">Urgent</option>
+                </select>
+
+                {/* Share to Admin Button */}
+                <button
+                  onClick={() => handleAction(ticket.id, "sharedToAdmin", true)}
+                  className={`px-4 py-2 rounded text-white ${
+                    ticket.sharedToAdmin
+                      ? "bg-green-600"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
+                  disabled={ticket.sharedToAdmin}
+                >
+                  {ticket.sharedToAdmin ? "Shared to Admin" : "Share to Admin"}
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
     </DashboardLayout>
   );
 }

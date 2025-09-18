@@ -45,7 +45,7 @@ export default function SignInPage() {
           ADMIN: "/dashboard/admin",
           HR: "/dashboard/hr",
           TEACHER: "/dashboard/teacher",
-          CONTENT_CREATOR: "/dashboard/content",
+          EMPLOYEE: "/dashboard/employee",
         }
 
         router.push(roleRoutes[session.user.role] || "/select-role")
@@ -64,7 +64,10 @@ export default function SignInPage() {
   }
 
   return (
+    
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      {/* ✅ Give Feedback for Employee button */}
+
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>

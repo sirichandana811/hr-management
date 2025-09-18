@@ -4,7 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
-// Updated schema without salary and leaves
+// Updated schema with skills
 const updateUserSchema = z.object({
   name: z.string().nullable().optional(),
   email: z.string().email(),
@@ -13,9 +13,6 @@ const updateUserSchema = z.object({
       "ADMIN",
       "HR",
       "TEACHER",
-      "CONTENT_CREATOR",
-      "SUPPORT_STAFF",
-      "EMPLOYEE",
     ])
     .nullable()
     .optional(),
@@ -29,6 +26,7 @@ const updateUserSchema = z.object({
     .optional()
     .transform((val) => (val ? new Date(val) : null)),
   isActive: z.boolean(),
+  skills: z.array(z.string()).optional(), // ✅ Added skills
 });
 
 export async function GET(
@@ -57,6 +55,7 @@ export async function GET(
         address: true,
         dateOfJoining: true,
         isActive: true,
+        skills: true, // ✅ return skills
       },
     });
 
@@ -67,7 +66,10 @@ export async function GET(
     return NextResponse.json(user, { status: 200 });
   } catch (error) {
     console.error("Get user error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -93,9 +95,14 @@ export async function PATCH(
     }
 
     if (updateData.email && updateData.email !== existingUser.email) {
-      const emailExists = await prisma.user.findUnique({ where: { email: updateData.email } });
+      const emailExists = await prisma.user.findUnique({
+        where: { email: updateData.email },
+      });
       if (emailExists) {
-        return NextResponse.json({ error: "Email already exists" }, { status: 400 });
+        return NextResponse.json(
+          { error: "Email already exists" },
+          { status: 400 }
+        );
       }
     }
 
@@ -108,7 +115,10 @@ export async function PATCH(
           where: { employeeId: updateData.employeeId },
         });
         if (employeeIdExists) {
-          return NextResponse.json({ error: "Employee ID already exists" }, { status: 400 });
+          return NextResponse.json(
+            { error: "Employee ID already exists" },
+            { status: 400 }
+          );
         }
       }
     }
@@ -118,17 +128,27 @@ export async function PATCH(
       data: {
         ...updateData,
         dateOfJoining: updateData.dateOfJoining ?? null,
+        skills: updateData.skills ?? existingUser.skills, // ✅ update skills
       },
     });
 
-    return NextResponse.json({ message: "User updated successfully", user }, { status: 200 });
+    return NextResponse.json(
+      { message: "User updated successfully", user },
+      { status: 200 }
+    );
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid input", details: error.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid input", details: error.errors },
+        { status: 400 }
+      );
     }
 
     console.error("Update user error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -143,23 +163,33 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { userId } = await params;
+    const { userId } = params;
 
     if (userId === session.user.id) {
-      return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Cannot delete your own account" },
+        { status: 400 }
+      );
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
     await prisma.leaveBalance.deleteMany({ where: { userId } });
 
     await prisma.user.delete({ where: { id: userId } });
 
-    return NextResponse.json({ message: "User deleted successfully" }, { status: 200 });
+    return NextResponse.json(
+      { message: "User deleted successfully" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Delete user error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

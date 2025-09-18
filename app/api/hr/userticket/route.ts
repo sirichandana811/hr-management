@@ -12,7 +12,7 @@ export async function GET() {
     const tickets = await prisma.supportTicket.findMany({
       where: {
         user: {
-          role: { in: ["TEACHER", "CONTENT_CREATOR"] },
+          role: { in: ["TEACHER"] },
         },
       },
       include: {
