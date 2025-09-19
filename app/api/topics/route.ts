@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-
+import { NextResponse } from "next/server";
 // Helper to parse Date + Time safely
 function parseDateTime(date: string, time?: string | null) {
   if (!time) return null;
@@ -7,18 +7,63 @@ function parseDateTime(date: string, time?: string | null) {
   return isNaN(dt.getTime()) ? null : dt;
 }
 
-export async function GET() {
+
+export async function GET(req: Request) {
   try {
-    const logs = await prisma.teachingLog.findMany({
-      orderBy: { date: "desc" },
-      include: { teacher: true },
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt( "50", 10);
+    const q = searchParams.get("q")?.toLowerCase() || "";
+    const date = searchParams.get("date");
+
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (q) {
+      where.OR = [
+        { topic: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+        { subject: { contains: q, mode: "insensitive" } },
+        { className: { contains: q, mode: "insensitive" } },
+        { college: { contains: q, mode: "insensitive" } },
+        { branch: { contains: q, mode: "insensitive" } },
+        { year: { contains: q, mode: "insensitive" } },
+        { teacher: { name: { contains: q, mode: "insensitive" } } },
+        { teacher: { email: { contains: q, mode: "insensitive" } } },
+      ];
+    }
+
+    if (date) {
+      where.date = {
+        gte: new Date(date + "T00:00:00Z"),
+        lte: new Date(date + "T23:59:59Z"),
+      };
+    }
+
+    const [logs, total] = await Promise.all([
+      prisma.teachingLog.findMany({
+        where,
+        skip,
+        take: limit,
+        include: { teacher: true },
+        orderBy: { date: "desc" },
+      }),
+      prisma.teachingLog.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      logs,
+      total,
+      totalPages: Math.ceil(total / limit),
     });
-    return Response.json(logs);
   } catch (err) {
-    console.error("GET /api/topics error:", err);
-    return new Response("Failed to fetch logs", { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: "Failed to fetch logs" }, { status: 500 });
   }
 }
+
+
+
 
 export async function POST(req: Request) {
   try {

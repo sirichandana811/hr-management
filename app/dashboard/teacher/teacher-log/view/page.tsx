@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,7 @@ export default function HRTeachingLogReviewPage() {
   const [logs, setLogs] = useState<TeachingLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDate, setSelectedDate] = useState(""); // 📅 calendar filter
+  const [selectedDate, setSelectedDate] = useState("");
 
   const [editingLog, setEditingLog] = useState<TeachingLog | null>(null);
   const [formData, setFormData] = useState({
@@ -69,13 +69,25 @@ export default function HRTeachingLogReviewPage() {
   });
   const [saving, setSaving] = useState(false);
 
-  // Fetch logs
+  // ⬅️ NEW pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 50;
+
+  // Fetch logs with pagination
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/topics");
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: pageSize.toString(),
+        q: searchQuery,
+        date: selectedDate,
+      });
+      const res = await fetch(`/api/topics?${params}`);
       const data = await res.json();
-      setLogs(Array.isArray(data) ? data : []);
+      setLogs(Array.isArray(data.logs) ? data.logs : []);
+      setTotalPages(data.totalPages || 1);
     } catch (err) {
       console.error("Failed to fetch logs", err);
       setLogs([]);
@@ -86,30 +98,7 @@ export default function HRTeachingLogReviewPage() {
 
   useEffect(() => {
     fetchLogs();
-  }, []);
-
-  // Filter logs (search + calendar filter)
-  const filteredLogs = useMemo(() => {
-    const q = searchQuery.toLowerCase();
-    return logs.filter((log) => {
-      const dateStr = new Date(log.date).toISOString().slice(0, 10); // yyyy-mm-dd
-
-      const matchesText =
-        (log.topic?.toLowerCase() || "").includes(q) ||
-        (log.description?.toLowerCase() || "").includes(q) ||
-        (log.className?.toLowerCase() || "").includes(q) ||
-        (log.subject?.toLowerCase() || "").includes(q) ||
-        (log.teacher.name?.toLowerCase() || "").includes(q) ||
-        (log.teacher.email?.toLowerCase() || "").includes(q) ||
-        (log.college?.toLowerCase() || "").includes(q) ||
-        (log.branch?.toLowerCase() || "").includes(q) ||
-        (log.year?.toLowerCase() || "").includes(q);
-
-      const matchesDate = selectedDate ? dateStr === selectedDate : true;
-
-      return matchesText && matchesDate;
-    });
-  }, [logs, searchQuery, selectedDate]);
+  }, [currentPage, searchQuery, selectedDate]);
 
   const handleEdit = (log: TeachingLog) => {
     setEditingLog(log);
@@ -182,12 +171,18 @@ export default function HRTeachingLogReviewPage() {
         <Input
           placeholder="Search by topic, subject, teacher…"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setCurrentPage(1); // reset page when searching
+          }}
         />
         <Input
           type="date"
           value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
+          onChange={(e) => {
+            setSelectedDate(e.target.value);
+            setCurrentPage(1); // reset page when filtering
+          }}
         />
         {selectedDate && (
           <Button variant="outline" onClick={() => setSelectedDate("")}>
@@ -200,68 +195,91 @@ export default function HRTeachingLogReviewPage() {
         <div className="py-8 flex justify-center">
           <Loader2 className="h-6 w-6 animate-spin" />
         </div>
-      ) : filteredLogs.length === 0 ? (
+      ) : logs.length === 0 ? (
         <p className="text-sm text-muted-foreground">No logs found.</p>
       ) : (
-        <div className="overflow-x-auto rounded-md border mt-4">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>College</TableHead>
-                <TableHead>Branch</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Class</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Topic</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Start</TableHead>
-                <TableHead>End</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredLogs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell>{log.college || "-"}</TableCell>
-                  <TableCell>{log.branch || "-"}</TableCell>
-                  <TableCell>{log.year || "-"}</TableCell>
-                  <TableCell>{log.className}</TableCell>
-                  <TableCell>{log.subject}</TableCell>
-                  <TableCell>{log.topic}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">
-                    {log.description}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(log.date).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    {log.startTime ? formatTime(log.startTime) : "-"}
-                  </TableCell>
-                  <TableCell>
-                    {log.endTime ? formatTime(log.endTime) : "-"}
-                  </TableCell>
-                  <TableCell className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(log)}
-                    >
-                      <Pencil className="w-4 h-4 mr-1" /> Edit
-                    </Button>
-                    <Button
-                      onClick={() => handleDelete(log.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white"
-                      size="sm"
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
+        <>
+          <div className="overflow-x-auto rounded-md border mt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>College</TableHead>
+                  <TableHead>Branch</TableHead>
+                  <TableHead>Year</TableHead>
+                  <TableHead>Class</TableHead>
+                  <TableHead>Subject</TableHead>
+                  <TableHead>Topic</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Start</TableHead>
+                  <TableHead>End</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {logs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>{log.college || "-"}</TableCell>
+                    <TableCell>{log.branch || "-"}</TableCell>
+                    <TableCell>{log.year || "-"}</TableCell>
+                    <TableCell>{log.className}</TableCell>
+                    <TableCell>{log.subject}</TableCell>
+                    <TableCell>{log.topic}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {log.description}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(log.date).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {log.startTime ? formatTime(log.startTime) : "-"}
+                    </TableCell>
+                    <TableCell>
+                      {log.endTime ? formatTime(log.endTime) : "-"}
+                    </TableCell>
+                    <TableCell className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(log)}
+                      >
+                        <Pencil className="w-4 h-4 mr-1" /> Edit
+                      </Button>
+                      <Button
+                        onClick={() => handleDelete(log.id)}
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                        size="sm"
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="flex justify-center items-center gap-2 mt-4">
+            <Button
+              variant="outline"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+            >
+              Prev
+            </Button>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </>
       )}
 
       {/* Edit Modal */}
