@@ -58,7 +58,7 @@ export async function POST(req: Request) {
         address,
         dateOfJoining: dateOfJoining ? new Date(dateOfJoining) : undefined,
        
-        image,
+        
         isActive: true,
         // or default true/false as you prefer
       },

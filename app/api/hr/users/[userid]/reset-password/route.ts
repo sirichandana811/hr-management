@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 export async function GET(
   req: NextRequest,
   { params }: { params: { userId: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const user = await prisma.user.findUnique({
       where: { id: params.userId },
       select: {
@@ -17,13 +23,6 @@ export async function GET(
         department: true,
         employeeId: true,
         isActive: true,
-        salary: true,
-        maxCL: true,
-        usedCL: true,
-        maxSL: true,
-        usedSL: true,
-        maxPL: true,
-        usedPL: true,
       },
     });
 
@@ -46,6 +45,10 @@ export async function PATCH(
   { params }: { params: { userId: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const body = await req.json();
 
     const {
@@ -55,13 +58,6 @@ export async function PATCH(
       department,
       employeeId,
       isActive,
-      salary,
-      maxCL,
-      usedCL,
-      maxSL,
-      usedSL,
-      maxPL,
-      usedPL,
     } = body;
 
     // Basic validation (extend as needed)
@@ -83,13 +79,7 @@ export async function PATCH(
         department: department || null,
         employeeId: employeeId || null,
         isActive,
-        salary: salary !== undefined ? salary : null,
-        maxCL: maxCL !== undefined ? maxCL : 20,
-        usedCL: usedCL !== undefined ? usedCL : 0,
-        maxSL: maxSL !== undefined ? maxSL : 20,
-        usedSL: usedSL !== undefined ? usedSL : 0,
-        maxPL: maxPL !== undefined ? maxPL : 20,
-        usedPL: usedPL !== undefined ? usedPL : 0,
+        
       },
     });
 
@@ -127,6 +117,14 @@ export async function PATCH(
 
 
 export async function POST(req: Request, { params }: { params: { userid: string } }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || !session.user.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!params) {
+    return NextResponse.json({ error: "Params are required" }, { status: 400 });
+  }
+
   const { userid } = params;
 
   if (!userid) {

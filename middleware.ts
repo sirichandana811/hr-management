@@ -31,8 +31,7 @@ export async function middleware(req: NextRequest) {
       admin: "ADMIN",
       hr: "HR",
       teacher: "TEACHER",
-      content: "CONTENT_CREATOR",
-      support: "SUPPORT_STAFF",
+    
       employee: "EMPLOYEE",
     };
 
@@ -43,8 +42,7 @@ export async function middleware(req: NextRequest) {
         ADMIN: "/dashboard/admin",
         HR: "/dashboard/hr",
         TEACHER: "/dashboard/teacher",
-        CONTENT_CREATOR: "/dashboard/content",
-        SUPPORT_STAFF: "/dashboard/support",
+       
         EMPLOYEE: "/dashboard/employee",
       };
       return NextResponse.redirect(new URL(redirectTo[token.role], req.url));

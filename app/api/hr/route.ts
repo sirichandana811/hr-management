@@ -35,10 +35,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         },
       }),
-      prisma.leave.count({
+      prisma.leaveRequest.count({
         where: { status: "PENDING" },
       }),
-      prisma.leave.count({
+      prisma.leaveRequest.count({
         where: { status: "APPROVED" },
       }),
     ])

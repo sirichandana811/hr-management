@@ -2,9 +2,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculateWorkingDays } from "@/lib/caluclateworkingdays";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const body = await req.json();
     const { userId, leaveTypeId, startDate, endDate, reason } = body;
 
@@ -102,6 +107,10 @@ export async function POST(req: Request) {
 
 // ✅ Get user leave requests
 export async function GET(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || !session.user.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("userId");
 

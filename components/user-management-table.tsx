@@ -39,8 +39,6 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
     ADMIN: "Administrator",
     HR: "HR Staff",
     TEACHER: "Teacher",
-    CONTENT_CREATOR: "Content Creator",
-    SUPPORT_STAFF: "Support Staff",
     EMPLOYEE: "Employee",
   }
 
@@ -52,8 +50,6 @@ export function UserManagementTable({ users }: UserManagementTableProps) {
         return "default"
       case "TEACHER":
         return "secondary"
-      case "CONTENT_CREATOR":
-        return "outline"
       default:
         return "secondary"
     }

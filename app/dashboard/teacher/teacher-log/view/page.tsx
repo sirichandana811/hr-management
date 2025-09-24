@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -51,9 +51,13 @@ export default function HRTeachingLogReviewPage() {
   const router = useRouter();
   const [logs, setLogs] = useState<TeachingLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDate, setSelectedDate] = useState("");
 
+  // filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  // editing
   const [editingLog, setEditingLog] = useState<TeachingLog | null>(null);
   const [formData, setFormData] = useState({
     className: "",
@@ -69,25 +73,17 @@ export default function HRTeachingLogReviewPage() {
   });
   const [saving, setSaving] = useState(false);
 
-  // ⬅️ NEW pagination states
+  // pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const pageSize = 50;
 
-  // Fetch logs with pagination
+  // Fetch all logs once (no backend filtering)
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: pageSize.toString(),
-        q: searchQuery,
-        date: selectedDate,
-      });
-      const res = await fetch(`/api/topics?${params}`);
+      const res = await fetch(`/api/topics`);
       const data = await res.json();
       setLogs(Array.isArray(data.logs) ? data.logs : []);
-      setTotalPages(data.totalPages || 1);
     } catch (err) {
       console.error("Failed to fetch logs", err);
       setLogs([]);
@@ -98,7 +94,39 @@ export default function HRTeachingLogReviewPage() {
 
   useEffect(() => {
     fetchLogs();
-  }, [currentPage, searchQuery, selectedDate]);
+  }, []);
+
+  // Apply frontend filtering
+  const filteredLogs = useMemo(() => {
+    return logs.filter((log) => {
+      const searchMatch =
+        log.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.teacher?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.teacher?.email?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      let dateMatch = true;
+      if (fromDate) {
+        dateMatch = new Date(log.date) >= new Date(fromDate);
+      }
+      if (toDate && dateMatch) {
+        dateMatch = new Date(log.date) <= new Date(toDate);
+      }
+
+      return searchMatch && dateMatch;
+    });
+  }, [logs, searchQuery, fromDate, toDate]);
+
+  // Pagination applied after filtering
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / pageSize));
+  const paginatedLogs = filteredLogs.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  useEffect(() => {
+    setCurrentPage(1); // reset when filters change
+  }, [searchQuery, fromDate, toDate]);
 
   const handleEdit = (log: TeachingLog) => {
     setEditingLog(log);
@@ -167,26 +195,36 @@ export default function HRTeachingLogReviewPage() {
         </Button>
       </div>
 
-      <div className="flex gap-4 mb-4">
+      <div className="flex flex-wrap gap-4 mb-4">
         <Input
           placeholder="Search by topic, subject, teacher…"
           value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setCurrentPage(1); // reset page when searching
-          }}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <Input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => {
-            setSelectedDate(e.target.value);
-            setCurrentPage(1); // reset page when filtering
-          }}
-        />
-        {selectedDate && (
-          <Button variant="outline" onClick={() => setSelectedDate("")}>
-            Clear Date
+         <Input
+    type="date"
+    value={fromDate}
+    onChange={(e) => setFromDate(e.target.value)}
+    className="w-36 text-sm"
+  />
+
+  {/* To Date */}
+  <Input
+    type="date"
+    value={toDate}
+    onChange={(e) => setToDate(e.target.value)}
+    className="w-36 text-sm"
+  />
+
+        {(fromDate || toDate) && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              setFromDate("");
+              setToDate("");
+            }}
+          >
+            Clear Dates
           </Button>
         )}
       </div>
@@ -195,7 +233,7 @@ export default function HRTeachingLogReviewPage() {
         <div className="py-8 flex justify-center">
           <Loader2 className="h-6 w-6 animate-spin" />
         </div>
-      ) : logs.length === 0 ? (
+      ) : paginatedLogs.length === 0 ? (
         <p className="text-sm text-muted-foreground">No logs found.</p>
       ) : (
         <>
@@ -217,7 +255,7 @@ export default function HRTeachingLogReviewPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs.map((log) => (
+                {paginatedLogs.map((log) => (
                   <TableRow key={log.id}>
                     <TableCell>{log.college || "-"}</TableCell>
                     <TableCell>{log.branch || "-"}</TableCell>

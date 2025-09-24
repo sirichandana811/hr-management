@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 // ✅ Get all teachers
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const teachers = await prisma.user.findMany({
       where: { role: "TEACHER" },
       orderBy: { name: "asc" },

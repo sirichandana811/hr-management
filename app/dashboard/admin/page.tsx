@@ -43,8 +43,6 @@ export default async function AdminDashboard() {
     ADMIN: "Administrators",
     HR: "HR Staff",
     TEACHER: "Teachers",
-    CONTENT_CREATOR: "Content Creators",
-    SUPPORT_STAFF: "Support Staff",
     EMPLOYEE: "Employees",
   }
 

@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { after } from "node:test";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+// GET: Fetch teachers with attendance for a specific date
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "HR") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { teacherId, date, forenoon, afternoon, markedById } = await req.json();
 
     if (!teacherId || !date || !forenoon || !afternoon || !markedById) {
@@ -38,6 +45,11 @@ import { NextRequest } from "next/server";
 
 // GET: Fetch teachers with attendance for a specific date
 export async function GET(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user || session.user.role !== "HR") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { searchParams } = new URL(req.url);
   const dateParam = searchParams.get("date");
   const teacherId = searchParams.get("teacherId");

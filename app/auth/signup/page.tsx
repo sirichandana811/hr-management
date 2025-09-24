@@ -19,9 +19,7 @@ type Role = typeof ROLES[keyof typeof ROLES]
 const roleOptions: { value: Role; label: string }[] = [
   { value: ROLES.ADMIN, label: "Administrator" },
   { value: ROLES.HR, label: "Human Resources" },
-  { value: ROLES.TEACHER, label: "Teacher" },
-  { value: ROLES.CONTENT_CREATOR, label: "Content Creator" },
-
+  { value: ROLES.EMPLOYEE, label: "Employee" },
 ]
 
 export default function SignUpPage() {

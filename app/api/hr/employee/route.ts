@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { NextRequest } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+// GET: Fetch teachers with attendance for a specific date
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const employees = await prisma.user.findMany({
       where: { role: { notIn: ["ADMIN", "HR"] } },
       select: {
@@ -27,6 +34,10 @@ export async function GET() {
 }
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     const { name, email, role, department, employeeId, isActive } = await req.json()
 
     if (!name || !email || !role) {
