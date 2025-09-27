@@ -6,10 +6,20 @@ import { NextResponse } from "next/server";
 // app/api/holidays/route.ts
 
 export async function GET() {
-  const holidays = await prisma.holiday.findMany({
-    orderBy: { date: "asc" }
-  });
-  return NextResponse.json(holidays);
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    const holidays = await prisma.holiday.findMany({
+      orderBy: { date: "asc" }
+    });
+    return NextResponse.json(holidays);
+  } catch (error) {
+    console.error("Error fetching holidays:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {

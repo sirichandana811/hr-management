@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
-import {prisma} from "@/lib/prisma"; // make sure you have prisma client setup
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // GET all feedbacks (for Admin)
 export async function GET(req: Request) {
+  // Security: Verify admin role
+  const session = await getServerSession(authOptions);
+  if (!session?.user || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const url = new URL(req.url);
     const page = parseInt(url.searchParams.get("page") || "1");
@@ -35,6 +43,12 @@ export async function GET(req: Request) {
 
 // PATCH -> Toggle visibility
 export async function PATCH(req: Request) {
+  // Security: Verify admin role
+  const session = await getServerSession(authOptions);
+  if (!session?.user || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { id, visible } = await req.json();
 

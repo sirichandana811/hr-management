@@ -78,6 +78,8 @@ export default function HRLeaveManagementPage() {
   const [editLeave, setEditLeave] = useState<Leave | null>(null);
   const [role, setRole] = useState("HR"); // ✅ default HR
   const [search, setSearch] = useState(""); // ✅ search filter
+  const [saving, setSaving] = useState(false); // ✅ for edit save button
+  const [actionStates, setActionStates] = useState<Record<string, string>>({}); // ✅ track button states
   const router = useRouter();
 
   // fetch all leave requests by role
@@ -116,6 +118,11 @@ export default function HRLeaveManagementPage() {
     const leave = leaves.find((l) => l.id === leaveId);
     if (!leave) return;
 
+    // ✅ Prevent duplicate submissions
+    if (processing === leaveId || actionStates[leaveId]) {
+      return;
+    }
+
     if (action === "APPROVE" && (!leave.days || leave.days < 1)) {
       alert("Days must be at least 1");
       return;
@@ -130,7 +137,10 @@ export default function HRLeaveManagementPage() {
 
     if (!window.confirm(confirmMsg)) return;
 
+    // ✅ Set processing state immediately
     setProcessing(leaveId);
+    setActionStates(prev => ({ ...prev, [leaveId]: action }));
+    
     try {
       const res = await fetch("/api/admin/leaves/action", {
         method: "PATCH",
@@ -149,14 +159,20 @@ export default function HRLeaveManagementPage() {
       setMessage("Something went wrong");
     } finally {
       setProcessing(null);
+      setActionStates(prev => {
+        const newState = { ...prev };
+        delete newState[leaveId];
+        return newState;
+      });
       setTimeout(() => setMessage(null), 10000);
     }
   };
 
   // ✅ save edited leave (call backend)
   const saveEditedLeave = async () => {
-    if (!editLeave) return;
+    if (!editLeave || saving) return; // ✅ Prevent duplicate saves
 
+    setSaving(true);
     try {
       const res = await fetch("/api/admin/leaves/edit", {
         method: "PATCH",
@@ -174,12 +190,13 @@ export default function HRLeaveManagementPage() {
       } else {
         setMessage("Leave updated successfully");
         fetchLeaves(role);
+        setEditLeave(null); // ✅ Close modal on success
       }
     } catch (error) {
       console.error(error);
       setMessage("Something went wrong");
     } finally {
-      setEditLeave(null);
+      setSaving(false);
       setTimeout(() => setMessage(null), 3000);
     }
   };
@@ -262,6 +279,7 @@ export default function HRLeaveManagementPage() {
                         <Button
                           size="sm"
                           variant="outline"
+                          disabled={processing === leave.id || !!actionStates[leave.id]}
                           onClick={() => setEditLeave(leave)}
                         >
                           Edit
@@ -269,20 +287,22 @@ export default function HRLeaveManagementPage() {
 
                         <Button
                           size="sm"
-                          disabled={processing === leave.id}
+                          disabled={processing === leave.id || !!actionStates[leave.id]}
                           onClick={() => handleAction(leave.id, "APPROVE")}
                         >
-                          {processing === leave.id
-                            ? "Processing..."
+                          {processing === leave.id && actionStates[leave.id] === "APPROVE"
+                            ? "Approving..."
                             : "Approve"}
                         </Button>
                         <Button
                           size="sm"
                           variant="destructive"
-                          disabled={processing === leave.id}
+                          disabled={processing === leave.id || !!actionStates[leave.id]}
                           onClick={() => handleAction(leave.id, "REJECT")}
                         >
-                          {processing === leave.id ? "Processing..." : "Reject"}
+                          {processing === leave.id && actionStates[leave.id] === "REJECT"
+                            ? "Rejecting..."
+                            : "Reject"}
                         </Button>
                       </>
                     )}
@@ -292,6 +312,7 @@ export default function HRLeaveManagementPage() {
                       <Button
                           size="sm"
                           variant="outline"
+                          disabled={processing === leave.id || !!actionStates[leave.id]}
                           onClick={() => setEditLeave(leave)}
                         >
                           Edit
@@ -299,10 +320,12 @@ export default function HRLeaveManagementPage() {
                       <Button
                         size="sm"
                         variant="destructive"
-                        disabled={processing === leave.id}
+                        disabled={processing === leave.id || !!actionStates[leave.id]}
                         onClick={() => handleAction(leave.id, "CANCEL")}
                       >
-                        {processing === leave.id ? "Processing..." : "Cancel"}
+                        {processing === leave.id && actionStates[leave.id] === "CANCEL"
+                          ? "Cancelling..."
+                          : "Cancel"}
                       </Button>
                       </>
                     )}
@@ -368,10 +391,19 @@ export default function HRLeaveManagementPage() {
               </div>
 
               <div className="flex justify-end mt-4 space-x-2">
-                <Button variant="secondary" onClick={() => setEditLeave(null)}>
+                <Button 
+                  variant="secondary" 
+                  onClick={() => setEditLeave(null)}
+                  disabled={saving}
+                >
                   Cancel
                 </Button>
-                <Button onClick={saveEditedLeave}>Save</Button>
+                <Button 
+                  onClick={saveEditedLeave}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Save"}
+                </Button>
               </div>
             </div>
           )}

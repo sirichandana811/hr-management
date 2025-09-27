@@ -7,22 +7,19 @@ import { prisma } from "@/lib/prisma"
 import { Download, FileText, Users, BookOpen, HelpCircle } from "lucide-react"
 
 async function getReportData() {
-  const [userStats, courseStats, ticketStats] = await Promise.all([
+  const [userStats, ticketStats] = await Promise.all([
     prisma.user.groupBy({
       by: ["role"],
       _count: { role: true },
     }),
-    prisma.course.groupBy({
-      by: ["subject"],
-      _count: { subject: true },
-    }),
+    
     prisma.supportTicket.groupBy({
       by: ["status"],
       _count: { status: true },
     }),
   ])
 
-  return { userStats, courseStats, ticketStats }
+  return { userStats, ticketStats }
 }
 
 export default async function ReportsPage() {
@@ -61,20 +58,7 @@ export default async function ReportsPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Course Report</CardTitle>
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{reportData.courseStats.length}</div>
-                <p className="text-xs text-muted-foreground">Different subjects</p>
-                <Button variant="outline" size="sm" className="mt-2 bg-transparent">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Generate
-                </Button>
-              </CardContent>
-            </Card>
+           
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

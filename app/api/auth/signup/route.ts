@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { validateCollegeEmail } from "@/lib/email-validation";
 
 export async function POST(req: Request) {
   try {
@@ -19,6 +20,20 @@ export async function POST(req: Request) {
     // Basic validation
     if (!name || !email || !password || !role || !employeeId) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
+    }
+
+    // Validate college email
+    const emailValidation = validateCollegeEmail(email);
+    if (!emailValidation.isValid) {
+      return new Response(JSON.stringify({ error: emailValidation.message }), { status: 400 });
+    }
+
+    // For students, require college email
+    if (role === "STUDENT" && !emailValidation.isCollegeEmail) {
+      return new Response(JSON.stringify({ 
+        error: "Students must use a valid college email address",
+        validDomains: emailValidation.domain ? [emailValidation.domain] : []
+      }), { status: 400 });
     }
 
     // Check if email already exists

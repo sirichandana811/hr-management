@@ -26,8 +26,7 @@ export async function requireRole(allowedRoles: UserRole[]) {
       ADMIN: "/dashboard/admin",
       HR: "/dashboard/hr",
       TEACHER: "/dashboard/teacher",
-      CONTENT_CREATOR: "/dashboard/content",
-      SUPPORT_STAFF: "/dashboard/support",
+      
       EMPLOYEE: "/dashboard/employee",
     }
     redirect(roleRoutes[session.user.role])

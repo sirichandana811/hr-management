@@ -7,7 +7,7 @@ import { authOptions } from "@/lib/auth"
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !session.user.id) {
+    if (!session?.user || session.user.role !== "HR") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const employees = await prisma.user.findMany({
@@ -35,7 +35,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !session.user.id) {
+    if (!session?.user || session.user.role !== "HR") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     const { name, email, role, department, employeeId, isActive } = await req.json()

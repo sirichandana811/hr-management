@@ -32,7 +32,7 @@ async function getEmployeeData(userId: string) {
 }
 
 export default async function EmployeeDashboard() {
-  await requireRole(["EMPLOYEE", "ADMIN", "HR", "TEACHER", "CONTENT_CREATOR", "SUPPORT_STAFF"])
+  await requireRole(["EMPLOYEE", "ADMIN", "HR", "TEACHER"])
   const session = await getServerSession(authOptions)
   const { user, myTickets } = await getEmployeeData(session!.user.id)
 

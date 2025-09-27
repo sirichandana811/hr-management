@@ -1,12 +1,21 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(req: Request) {
+  // Security: Verify admin role
+  const session = await getServerSession(authOptions);
+  if (!session?.user || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     // Fetch all leave requests with user info
     const { searchParams } = new URL(req.url);
-    const role = searchParams.get("role") || "HR"; 
+    const roleParam = searchParams.get("role");
+    const role = roleParam === "TEACHER" ? "TEACHER" : "HR";
+    
     const leaves = await prisma.leaveRequest.findMany({
       where: { role },
       orderBy: { createdAt: "desc" },

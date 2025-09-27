@@ -22,6 +22,10 @@ export default function SignInPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // ✅ Prevent duplicate submissions
+    if (isLoading) return
+    
     setIsLoading(true)
     setError("")
 

@@ -19,6 +19,7 @@ type Role = typeof ROLES[keyof typeof ROLES]
 const roleOptions: { value: Role; label: string }[] = [
   { value: ROLES.ADMIN, label: "Administrator" },
   { value: ROLES.HR, label: "Human Resources" },
+  { value: ROLES.TEACHER, label: "Teacher" },
   { value: ROLES.EMPLOYEE, label: "Employee" },
 ]
 
@@ -43,10 +44,15 @@ export default function SignUpPage() {
 
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [emailError, setEmailError] = useState("")
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // ✅ Prevent duplicate submissions
+    if (isLoading) return
+    
     setIsLoading(true)
     setError("")
 
@@ -92,6 +98,31 @@ export default function SignUpPage() {
 
   const handleInputChange = (field: keyof typeof formData, value: string | Role) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+    
+    // Validate email in real-time
+    if (field === "email") {
+      validateEmail(value as string)
+    }
+  }
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setEmailError("Invalid email format")
+      return false
+    }
+
+    // Check for college domains
+    const collegeDomains = ['.edu', '.ac.in', '.edu.in']
+    const isCollegeEmail = collegeDomains.some(domain => email.toLowerCase().endsWith(domain))
+    
+    if (!isCollegeEmail) {
+      setEmailError("Please use a college email address (e.g., .edu, .ac.in)")
+      return false
+    }
+
+    setEmailError("")
+    return true
   }
 
   return (
@@ -124,15 +155,22 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">College Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Enter your college email (e.g., student@university.edu)"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
                 required
+                className={emailError ? "border-red-500" : ""}
               />
+              {emailError && (
+                <p className="text-sm text-red-500">{emailError}</p>
+              )}
+              <p className="text-xs text-gray-500">
+                Use your college email address (e.g., .edu, .ac.in domains)
+              </p>
             </div>
 
             <div className="space-y-2">

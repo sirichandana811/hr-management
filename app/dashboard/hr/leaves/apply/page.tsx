@@ -52,7 +52,8 @@ export default function ApplyLeavePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isSubmitting) return; // 🚫 stop duplicate click
+    // ✅ Enhanced duplicate prevention
+    if (isSubmitting) return;
     setIsSubmitting(true);
 
     if (!selectedLeaveType || !startDate || !endDate) {
@@ -90,7 +91,7 @@ export default function ApplyLeavePage() {
       console.error(err);
       setMessage("Something went wrong");
     } finally {
-      setIsSubmitting(false); // ✅ reset after request
+      setIsSubmitting(false);
     }
   };
 

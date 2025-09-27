@@ -42,7 +42,7 @@ async function getRecentTickets() {
 }
 
 export default async function SupportDashboard() {
-  await requireRole(["SUPPORT_STAFF", "ADMIN"])
+  await requireRole([ "ADMIN"])
   const stats = await getSupportStats()
   const recentTickets = await getRecentTickets()
 

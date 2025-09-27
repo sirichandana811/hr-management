@@ -1,10 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import { prisma } from "@/lib/prisma"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
     res.setHeader("Allow", ["GET"])
     return res.status(405).end(`Method ${req.method} Not Allowed`)
+  }
+
+  // Security: Verify HR role
+  const session = await getServerSession(authOptions)
+  if (!session?.user || session.user.role !== "HR") {
+    return res.status(401).json({ error: "Unauthorized" })
   }
 
   try {
