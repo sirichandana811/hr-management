@@ -1,130 +1,114 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Loader2, ChevronsUpDown, Check, Trash2, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import * as XLSX from "xlsx";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function AdminReviews() {
   const [reviews, setReviews] = useState<any[]>([]);
-  const [users, setUsers] = useState<
-    { id: string; name: string; employeeId: string }[]
-  >([]);
+  const [users, setUsers] = useState<{ id: string; name: string; employeeId: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTeacher, setSelectedTeacher] = useState<{
-    name: string;
-    employeeId: string;
-  } | null>(null);
+  const [selectedTeacher, setSelectedTeacher] = useState<{ name: string; employeeId: string } | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const router = useRouter();
 
-  // Fetch reviews & users
   useEffect(() => {
     const fetchReviews = async () => {
-      const res = await fetch("/api/admin/feedback");
-      const data = await res.json();
-      setReviews(data.reviews || []); // updated for paginated API
-      setLoading(false);
+      try {
+        const res = await fetch("/api/admin/feedback");
+        const data = await res.json();
+        setReviews(data.reviews || []);
+      } catch (err) {
+        console.error("Failed to fetch reviews:", err);
+        toast.error("Failed to load reviews.");
+      } finally {
+        setLoading(false);
+      }
     };
+
     const fetchUsers = async () => {
-      const res = await fetch("/api/reviewusers");
-      const data = await res.json();
-      setUsers(data || []);
+      try {
+        const res = await fetch("/api/reviewusers");
+        const data = await res.json();
+        setUsers(data || []);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+      }
     };
+
     fetchReviews();
     fetchUsers();
   }, []);
 
-  // Toggle all reviews
   const handleToggleAll = async (visible: boolean) => {
-    setReviews((prev) => prev.map((r) => ({ ...r, visibleToTeacher: visible })));
-
-    await fetch("/api/admin/feedback/visibility", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ visible }),
-    });
+    try {
+      setReviews((prev) => prev.map((r) => ({ ...r, visibleToTeacher: visible })));
+      const res = await fetch("/api/admin/feedback/visibility", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visible }),
+      });
+      if (!res.ok) throw new Error("Failed to toggle visibility");
+      toast.success(`Reviews are now ${visible ? "visible" : "hidden"} to teachers.`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update visibility.");
+    }
   };
 
-  // Delete review
   const handleDeleteReview = async (id: string) => {
-    await fetch(`/api/admin/feedback/${id}`, {
-      method: "DELETE",
-    });
-
-    setReviews((prev) => prev.filter((r) => r.id !== id));
+    try {
+      if (!confirm("Are you sure you want to delete this review?")) return;
+      const res = await fetch(`/api/admin/feedback/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete review");
+      setReviews((prev) => prev.filter((r) => r.id !== id));
+      toast.success("Review deleted successfully.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete review.");
+    }
   };
 
-  // Export reviews as Excel
   const handleDownloadExcel = () => {
     if (!selectedTeacher) return;
-
-    const filtered = reviews.filter(
-      (r) => r.empId === selectedTeacher.employeeId
-    );
-
-    if (filtered.length === 0) return;
-
+    const filtered = reviews.filter((r) => r.empId === selectedTeacher.employeeId);
+    if (filtered.length === 0) {
+      toast.error("No reviews to download for this teacher.");
+      return;
+    }
     const worksheetData = filtered.map((r) => ({
       StudentID: r.studentId,
       Teacher: `${r.empName} (${r.empId})`,
       College: r.college,
-      Department: r.dept,
+      Year: r.year,
       Rating: r.rating,
       Remarks: r.remarks,
+      "Visible to Teacher": r.visibleToTeacher ? "Yes" : "No",
     }));
-
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(
-      workbook,
-      worksheet,
-      `${selectedTeacher.name}_Reviews`
-    );
-
-    XLSX.writeFile(
-      workbook,
-      `Reviews_${selectedTeacher.name}_${selectedTeacher.employeeId}.xlsx`
-    );
+    XLSX.utils.book_append_sheet(workbook, worksheet, `${selectedTeacher.name}_Reviews`);
+    XLSX.writeFile(workbook, `Reviews_${selectedTeacher.name}_${selectedTeacher.employeeId}.xlsx`);
+    toast.success("Reviews downloaded successfully.");
   };
 
-  // Filter reviews by teacher if selected
   const filteredReviews = selectedTeacher
     ? reviews.filter((r) => r.empId === selectedTeacher.employeeId)
     : [];
 
-  // Calculate average rating
   const avgRating =
     filteredReviews.length > 0
-      ? (
-          filteredReviews.reduce((sum, r) => sum + Number(r.rating), 0) /
-          filteredReviews.length
-        ).toFixed(2)
+      ? (filteredReviews.reduce((sum, r) => sum + Number(r.rating), 0) / filteredReviews.length).toFixed(2)
       : null;
 
   if (loading)
@@ -136,157 +120,108 @@ export default function AdminReviews() {
 
   return (
     <DashboardLayout title="Admin Reviews">
-      <div className="min-h-screen p-6 bg-gray-50 space-y-6">
-        {/* Teacher Select & Global Toggle */}
-        <div className="flex items-center space-x-4">
-          <Popover open={dropdownOpen} onOpenChange={setDropdownOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                className="w-64 justify-between"
-              >
-                {selectedTeacher
-                  ? `${selectedTeacher.name} (${selectedTeacher.employeeId})`
-                  : "Select Teacher"}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 p-0">
-              <Command>
-                <CommandInput placeholder="Search teachers..." />
-                <CommandList>
-                  <CommandEmpty>No teacher found.</CommandEmpty>
-                  <CommandGroup>
-                    {users.map((user) => (
-                      <CommandItem
-                        key={user.id}
-                        value={user.employeeId}
-                        onSelect={() => {
-                          setSelectedTeacher({
-                            name: user.name,
-                            employeeId: user.employeeId,
-                          });
-                          setDropdownOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedTeacher?.employeeId === user.employeeId
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
-                        {user.name} ({user.employeeId})
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-
-          {/* Global toggle button */}
-          <div className="flex items-center space-x-2">
-            <Switch
-              checked={reviews.every((r) => r.visibleToTeacher)}
-              onCheckedChange={(checked) => handleToggleAll(checked)}
-            />
-            <Label>
-              {reviews.every((r) => r.visibleToTeacher)
-                ? "Visible to Teachers"
-                : "Hidden from Teachers"}
-            </Label>
-          </div>
-        </div>
-
-        {/* If no teacher selected */}
-        {!selectedTeacher && (
-          <div className="text-gray-600 font-medium">
-            No teacher selected. Please choose a teacher to view reviews.
-          </div>
-        )}
-
-        {/* Average Rating + Download Excel */}
-        {selectedTeacher && (
-          <div className="flex items-center justify-between">
-            {avgRating && (
-              <div className="text-lg font-semibold">
-                Average Rating:{" "}
-                <span className="text-blue-600">{avgRating}</span>
-              </div>
-            )}
-            <Button
-              variant="outline"
-              onClick={handleDownloadExcel}
-              className="flex items-center space-x-2"
-            >
-              <Download className="h-4 w-4" />
-              <span>Download Excel</span>
+      {/* Top Bar: Add Students button + Teacher select + Toggle */}
+      <div className="flex items-center justify-between mb-4">
+        {/* Teacher Select */}
+        <Popover open={dropdownOpen} onOpenChange={setDropdownOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" role="combobox" aria-expanded={dropdownOpen} className="w-64 justify-between">
+              {selectedTeacher ? selectedTeacher.name : "Select Teacher"}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
-          </div>
-        )}
-
-        {/* Show reviews only if teacher selected */}
-        {selectedTeacher && (
-          <Card className="w-full shadow-lg rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold">
-                Reviews for {selectedTeacher.name} ({selectedTeacher.employeeId})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student ID</TableHead>
-                    <TableHead>Teacher</TableHead>
-                    <TableHead>College</TableHead>
-                    <TableHead>Dept</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Remarks</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredReviews.map((review) => (
-                    <TableRow key={review.id}>
-                      <TableCell>{review.studentId}</TableCell>
-                      <TableCell>
-                        {review.empName} ({review.empId})
-                      </TableCell>
-                      <TableCell>{review.college}</TableCell>
-                      <TableCell>{review.dept}</TableCell>
-                      <TableCell>{review.rating}</TableCell>
-                      <TableCell>{review.remarks}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeleteReview(review.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-0">
+            <Command>
+              <CommandInput placeholder="Search teacher..." />
+              <CommandList>
+                <CommandEmpty>No teachers found.</CommandEmpty>
+                <CommandGroup>
+                  {users.map((user) => (
+                    <CommandItem
+                      key={user.id}
+                      onSelect={() => {
+                        setSelectedTeacher({ name: user.name, employeeId: user.employeeId });
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedTeacher?.employeeId === user.employeeId ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {user.name} ({user.employeeId})
+                    </CommandItem>
                   ))}
-                  {filteredReviews.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={7}
-                        className="text-center text-gray-500"
-                      >
-                        No reviews found
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        {/* Toggle + Add Students */}
+        <div className="flex items-center space-x-2">
+          <Label>Show to Teachers</Label>
+          <Switch onCheckedChange={(val) => handleToggleAll(val)} />
+          <Button onClick={() => router.push("/dashboard/admin/reviews/student")}>
+           add students
+          </Button>
+        </div>
       </div>
+
+      {avgRating && (
+        <p className="mt-2 text-sm text-gray-600">
+          Average Rating: <span className="font-semibold">{avgRating}</span>
+        </p>
+      )}
+
+      {selectedTeacher && (
+        <div className="mt-2 mb-4">
+          <Button onClick={handleDownloadExcel} className="flex items-center space-x-2">
+            <Download className="h-4 w-4" />
+            <span>Download Reviews</span>
+          </Button>
+        </div>
+      )}
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Student ID</TableHead>
+            <TableHead>College</TableHead>
+            <TableHead>Year</TableHead>
+            <TableHead>Rating</TableHead>
+            <TableHead>Remarks</TableHead>
+            <TableHead>Visible</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredReviews.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center text-gray-500">
+                No reviews available for this teacher.
+              </TableCell>
+            </TableRow>
+          ) : (
+            filteredReviews.map((review) => (
+              <TableRow key={review.id}>
+                <TableCell>{review.studentId}</TableCell>
+                <TableCell>{review.college}</TableCell>
+                <TableCell>{review.year}</TableCell>
+                <TableCell>{review.rating}</TableCell>
+                <TableCell>{review.remarks}</TableCell>
+                <TableCell>{review.visibleToTeacher ? "Yes" : "No"}</TableCell>
+                <TableCell>
+                  <Button variant="ghost" size="icon" onClick={() => handleDeleteReview(review.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </DashboardLayout>
   );
 }

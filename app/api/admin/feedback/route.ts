@@ -4,6 +4,44 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 // GET all feedbacks (for Admin)
+
+export async function POST(req: Request) {
+  try {
+    const {
+      studentId,
+      year,
+      empName,
+      empId,
+      college,
+      dept,
+      rating,
+      remarks,
+    } = await req.json();
+
+    if (!studentId || !year || !empId || !college || !dept || !rating) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const feedback = await prisma.feedback.create({
+      data: {
+        studentId: studentId,
+        year,
+        empName,
+        empId,
+        college,
+        dept,
+        rating: Number(rating),
+        remarks,
+      },
+    });
+
+    return NextResponse.json(feedback);
+  } catch (error) {
+    console.error("Error submitting feedback:", error);
+    return NextResponse.json({ error: "Failed to submit feedback" }, { status: 500 });
+  }
+}
+
 export async function GET(req: Request) {
   // Security: Verify admin role
   const session = await getServerSession(authOptions);

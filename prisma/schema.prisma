@@ -69,6 +69,7 @@ model User {
   markedAttendances TeacherAttendance[] @relation("AttendanceMarkedBy")
   leaveRequests     LeaveRequest[]
   leaveBalances     LeaveBalance[]
+  college           College[]
 }
 
 model VerificationToken {
@@ -221,13 +222,36 @@ model Feedback {
   empName   String
   empId     String
   college   String
+  year      String?
   dept      String
-  studentId String?
   rating    Int
   remarks   String
   createdAt DateTime @default(now())
   visibleToTeacher Boolean @default(false)
   // Relation
-  user   User   @relation(fields: [userId], references: [id])
+  studentId String   
+  student   Student  @relation(fields: [studentId], references: [id])
+
   userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+}
+model College {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  year     String
+  location String?
+  userId   String    @db.ObjectId
+  user     User      @relation(fields: [userId], references: [id])
+  students Student[]
+
+  @@unique([name, year])   // 👈 enforce unique name+year
+}
+
+model Student {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  email     String        
+  name      String?
+  collegeId String     @db.ObjectId
+  college   College    @relation(fields: [collegeId], references: [id])
+  feedbacks Feedback[]
 }

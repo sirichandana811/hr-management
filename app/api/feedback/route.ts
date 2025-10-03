@@ -4,40 +4,42 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { validateCollegeEmail } from "@/lib/email-validation";
 
+
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || !session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    
+
     const body = await req.json();
-    const { empName, empId, college, dept, rating, remarks, studentId } = body;
+    const { empName, empId, college, dept, rating, remarks, studentId ,year} = body;
 
     if (!empName || !empId || !college || !dept || !rating || !remarks || !studentId) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
-    // Validate student email (studentId is the student's college email)
-    const emailValidation = validateCollegeEmail(studentId);
-    if (!emailValidation.isValid) {
-      return NextResponse.json({ error: `Invalid student email: ${emailValidation.message}` }, { status: 400 });
-    }
-    if (!emailValidation.isCollegeEmail) {
-      return NextResponse.json({ 
-        error: "Student email must be from a recognized college domain",
-        validDomains: emailValidation.domain ? [emailValidation.domain] : []
-      }, { status: 400 });
-    }
+    // Check if student exists in the database
+    const student = await prisma.student.findFirst({
+      where: { email: studentId },
+    });
 
+    if (!student) {
+      return NextResponse.json(
+        { error: "Student not found in database. Cannot submit feedback." },
+        { status: 404 }
+      );
+    }
+   if(student.email!==studentId){
+    return NextResponse.json({ error: "Student email does not match" }, { status: 400 });
+   }
     // Find user by empId
     const user = await prisma.user.findFirst({
-      where: { employeeId : empId },
+      where: { employeeId: empId },
     });
 
     if (!user) {
       return NextResponse.json({ error: "Employee not found" }, { status: 404 });
     }
 
+    // Save feedback
     const feedback = await prisma.feedback.create({
       data: {
         studentId,
@@ -47,6 +49,7 @@ export async function POST(req: Request) {
         dept,
         rating: parseInt(rating),
         remarks,
+        year,
         userId: user.id, // Link feedback to user
       },
     });
@@ -57,6 +60,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
 
 export async function GET() {
   try {
