@@ -7,7 +7,10 @@ import { validateCollegeEmail } from "@/lib/email-validation";
 
 export async function POST(req: Request) {
   try {
-    
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const body = await req.json();
     const { empName, empId, college, dept, rating, remarks, studentId ,year} = body;
