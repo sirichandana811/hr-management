@@ -255,3 +255,9 @@ model Student {
   college   College    @relation(fields: [collegeId], references: [id])
   feedbacks Feedback[]
 }
+model AnonymousFeedback {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  department      String?  // optional (for anonymous feedback)
+  message   String
+  createdAt DateTime @default(now())
+}

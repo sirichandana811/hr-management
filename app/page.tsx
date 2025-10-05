@@ -14,13 +14,25 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-white text-black">
       {/* Top bar */}
-      <header className="w-full flex justify-end px-6 py-4 border-b border-gray-200 bg-white/80 backdrop-blur-sm fixed top-0 left-0 z-50">
-        <Link href="/review">
-          <Button size="sm" className="bg-black text-white hover:bg-gray-800">
-            Give Feedback
-          </Button>
-        </Link>
-      </header>
+<header className="w-full flex justify-end px-6 py-4 border-b border-gray-200 bg-white/80 backdrop-blur-sm fixed top-0 left-0 z-50">
+  <div className="flex items-center gap-4">
+    <Link href="/review">
+      <Button size="sm" className="bg-black text-white hover:bg-gray-800">
+        Give Feedback
+      </Button>
+    </Link>
+
+    <Link href="/anonymousfeedback">
+      <Button
+        size="sm"
+        className="bg-gray-200 text-black hover:bg-gray-300 border border-gray-400"
+      >
+        Anonymous Feedback
+      </Button>
+    </Link>
+  </div>
+</header>
+
 
       {/* Hero Section */}
       <section
