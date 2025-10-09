@@ -13,45 +13,51 @@ import { Button } from "@/components/ui/button";
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-white text-black">
-      {/* Top bar */}
-<header className="w-full flex justify-end px-6 py-4 border-b border-gray-200 bg-white/80 backdrop-blur-sm fixed top-0 left-0 z-50">
-  <div className="flex items-center gap-4">
-    <Link href="/review">
-      <Button size="sm" className="bg-black text-white hover:bg-gray-800">
-        Give Feedback
-      </Button>
-    </Link>
+      {/* Top Bar */}
+      <header className="w-full flex justify-between items-center px-8 py-4 border-b border-gray-200 bg-white/80 backdrop-blur-sm fixed top-0 left-0 z-50">
+      
+      <h1 className="flex items-center gap-2 text-2xl font-extrabold text-black tracking-tight">
+  <img
+    src="/logo.jpg"
+    alt="Trailbliz Logo"
+    className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-lg"
+  />
+  Trailbliz <span className="text-gray-600">(Nirudhyog)</span>
+</h1>
 
-    <Link href="/anonymousfeedback">
-      <Button
-        size="sm"
-        className="bg-gray-200 text-black hover:bg-gray-300 border border-gray-400"
-      >
-        Anonymous Feedback
-      </Button>
-    </Link>
-  </div>
-</header>
-
+        <div className="flex items-center gap-4">
+          <Link href="/review">
+            <Button size="sm" className="bg-black text-white hover:bg-gray-800">
+              Give Feedback
+            </Button>
+          </Link>
+          <Link href="/anonymousfeedback">
+            <Button
+              size="sm"
+              className="bg-gray-200 text-black hover:bg-gray-300 border border-gray-400"
+            >
+              Anonymous Feedback
+            </Button>
+          </Link>
+        </div>
+      </header>
 
       {/* Hero Section */}
       <section
-        className="relative flex flex-col items-center justify-center text-center px-6 pt-32 pb-24 bg-cover bg-center bg-no-repeat"
+        className="relative flex flex-col items-center justify-center text-center px-6 pt-36 pb-24 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80')",
+          backgroundImage:"",
         }}
       >
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
-
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px]" />
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-5xl md:text-6xl font-extrabold mb-6 relative z-10 text-white"
+          className="text-5xl md:text-7xl font-extrabold mb-6 relative z-10 text-white drop-shadow-lg"
         >
-          WELCOME TO <span className="text-white underline">TRAILBLIZ</span>
+          Empowering <span className="text-yellow-400 underline">Careers</span>,
+          Building <span className="text-yellow-400 underline">Futures</span>
         </motion.h1>
 
         <motion.p
@@ -60,9 +66,9 @@ export default function HomePage() {
           transition={{ duration: 0.8 }}
           className="text-lg md:text-xl text-gray-200 max-w-2xl mb-10 relative z-10"
         >
-          Where unemployed meets unstoppable — empowering careers, fostering
-          growth, and crafting professionals with world-class training,
-          mentorship, and placement support.
+          Trailbliz transforms the unemployed into unstoppable professionals
+          through world-class mentorship, career guidance, and job placement
+          support.
         </motion.p>
 
         <motion.div
@@ -72,50 +78,108 @@ export default function HomePage() {
           className="flex gap-4 relative z-10"
         >
           <Link href="/auth/signin">
-            <Button size="lg" className="bg-white text-black hover:bg-gray-200">
+            <Button size="lg" className="bg-yellow-400 text-black hover:bg-yellow-500">
               Sign In
+            </Button>
+          </Link>
+          <Link href="#about">
+            <Button size="lg" variant="outline" className="border-white text-black hover:bg-white/10">
+              Learn More
             </Button>
           </Link>
         </motion.div>
       </section>
 
-      {/* Why Choose Trailbliz */}
-      <section className="py-20 px-6 bg-white">
+      {/* About Section */}
+      <section id="about" className="py-20 px-6 bg-gray-50">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+          <img
+            src="Trailbliz.jpg"
+            alt="About Trailbliz"
+            className="rounded-2xl shadow-lg"
+          />
+          <div>
+            <h2 className="text-3xl font-bold mb-6 text-black">
+              Who We Are
+            </h2>
+            <p className="text-gray-700 text-lg leading-relaxed mb-4">
+              Trailbliz (Nirudhyog) is a skill development and career acceleration platform dedicated to transforming passionate learners into job-ready professionals. Our ecosystem combines mentorship, real-world projects, and job placement support.
+            </p>
+            <p className="text-gray-700 text-lg leading-relaxed">
+              We partner with top organizations and industry experts to ensure that every learner achieves career excellence — regardless of their background.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Mission & Vision */}
+      <section className="py-20 px-6 bg-white text-center">
+        <h2 className="text-4xl font-bold mb-12 text-black">
+          Our <span className="text-yellow-500">Mission & Vision</span>
+        </h2>
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10">
+          <Card className="border-yellow-400 shadow-md hover:shadow-xl transition">
+            <CardHeader>
+              <CardTitle className="text-2xl font-semibold text-black">
+                🎯 Our Mission
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 text-lg">
+                To bridge the gap between education and employability by empowering students with real-world skills, confidence, and the right mindset for success.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-yellow-400 shadow-md hover:shadow-xl transition">
+            <CardHeader>
+              <CardTitle className="text-2xl font-semibold text-black">
+                🚀 Our Vision
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 text-lg">
+                To create a future where every graduate becomes a confident, capable, and employable professional contributing to India’s growing tech revolution.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Programs Section */}
+      <section className="py-20 px-6 bg-gray-50">
         <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-black">
-            Why Choose <span className="text-gray-700">Trailbliz?</span>
+          <h2 className="text-4xl font-bold mb-12 text-black">
+            Explore Our <span className="text-yellow-500">Programs</span>
           </h2>
           <div className="grid md:grid-cols-3 gap-10">
             {[
               {
-                title: "Mentorship",
-                desc: "Personal guidance from experienced trainers who stay with you until you land your dream job.",
-                img: "https://images.unsplash.com/photo-1596495577886-d920f1fb7238?auto=format&fit=crop&w=600&q=80",
+                title: "Full Stack Development",
+                desc: "Master MERN Stack and become a job-ready developer with hands-on projects.",
+                img: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80",
               },
               {
-                title: "Placements",
-                desc: "17,000+ students trained across leading companies.",
-                img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=80",
+                title: "Data Analytics",
+                desc: "Learn to analyze, visualize, and interpret data using Python, Excel, and Power BI.",
+                img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80",
               },
               {
-                title: "Community",
-                desc: "A supportive ecosystem of learners and mentors — built by engineers, for engineers.",
-                img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=80",
+                title: "Interview & Career Prep",
+                desc: "Enhance your soft skills, resume, and interview techniques with expert mentorship.",
+                img: "https://images.unsplash.com/photo-1581093588401-22d5d1c571b1?auto=format&fit=crop&w=600&q=80",
               },
-            ].map((item) => (
-              <motion.div key={item.title} whileHover={{ y: -8 }}>
+            ].map((p) => (
+              <motion.div key={p.title} whileHover={{ y: -8 }}>
                 <Card className="overflow-hidden border border-gray-300 hover:shadow-xl transition-all duration-300">
                   <div
-                    className="h-40 bg-cover bg-center grayscale hover:grayscale-0 transition-all duration-500"
-                    style={{ backgroundImage: `url(${item.img})` }}
+                    className="h-48 bg-cover bg-center grayscale hover:grayscale-0 transition-all duration-500"
+                    style={{ backgroundImage: `url(${p.img})` }}
                   />
                   <CardHeader>
-                    <CardTitle className="text-xl text-black">
-                      {item.title}
-                    </CardTitle>
+                    <CardTitle className="text-xl text-black">{p.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600">{item.desc}</p>
+                    <p className="text-gray-600">{p.desc}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -126,10 +190,11 @@ export default function HomePage() {
 
       {/* Stats */}
       <section className="py-20 px-6 bg-black text-white relative overflow-hidden">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 text-center relative z-10">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-12 text-center relative z-10">
           {[
             { stat: "17K+", label: "Students Trained" },
             { stat: "100+", label: "Partner Companies" },
+            { stat: "95%", label: "Placement Success Rate" },
           ].map((s) => (
             <motion.div
               key={s.label}
@@ -138,7 +203,7 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <h3 className="text-5xl font-extrabold">{s.stat}</h3>
+              <h3 className="text-5xl font-extrabold text-yellow-400">{s.stat}</h3>
               <p className="mt-2 text-lg text-gray-300">{s.label}</p>
             </motion.div>
           ))}
@@ -147,29 +212,35 @@ export default function HomePage() {
 
       {/* Testimonials */}
       <section className="py-20 px-6 bg-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-black">
-            What Students Say
+        <div className="max-w-5xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-black">
+            Hear From Our <span className="text-yellow-500">Learners</span>
           </h2>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <Card className="bg-gray-50 border border-gray-200 shadow-sm hover:shadow-lg transition">
-              <CardContent className="p-8">
-                <p className="text-lg md:text-xl text-gray-800 italic mb-4">
-                  “Trailbliz isn’t just training, it’s a career transformation.
-                  The mentorship and placement prep gave me the confidence to
-                  land my dream job.”
-                </p>
+          <div className="grid md:grid-cols-2 gap-8">
+            {[
+              {
+                text: "Trailbliz changed my life! I went from being unsure about my career to landing my first developer job within 3 months.",
+                name: "Priya Sharma",
+                role: "Software Engineer at Accenture",
+              },
+              {
+                text: "The mentors guided me throughout — from resume building to cracking my interviews. Truly grateful!",
+                name: "Rohit Verma",
+                role: "Data Analyst at Deloitte",
+              },
+            ].map((t) => (
+              <motion.div
+                key={t.name}
+                whileHover={{ scale: 1.03 }}
+                className="bg-gray-50 border border-gray-200 rounded-2xl shadow-sm p-8 hover:shadow-lg transition"
+              >
+                <p className="text-lg text-gray-800 italic mb-4">“{t.text}”</p>
                 <footer className="text-black font-semibold">
-                  — A Happy Alumni
+                  — {t.name}, <span className="text-gray-600">{t.role}</span>
                 </footer>
-              </CardContent>
-            </Card>
-          </motion.div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
