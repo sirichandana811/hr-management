@@ -7,7 +7,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow public routes
-  if (pathname.startsWith("/auth/") || pathname === "/" || pathname === "/review") {
+  if (pathname.startsWith("/auth/") || pathname === "/" || pathname === "/review" || pathname==="/public" || pathname==="/anonymousfeedback") {
     return NextResponse.next();
   }
 
