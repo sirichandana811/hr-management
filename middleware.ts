@@ -1,16 +1,26 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
+import Image from "next/image";
 export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const { pathname } = req.nextUrl;
 
   // Allow public routes
-  if (pathname.startsWith("/auth/") || pathname === "/" || pathname === "/review" || pathname==="/public" || pathname==="/anonymousfeedback") {
+  if (pathname.startsWith("/auth/") || pathname === "/" || pathname === "/review" || pathname === "/public" || pathname === "/anonymousfeedback") {
     return NextResponse.next();
   }
-
+  if (
+    req.nextUrl.pathname.startsWith("/_next") ||
+    req.nextUrl.pathname.startsWith("/api") ||
+    req.nextUrl.pathname.startsWith("/favicon") ||
+    req.nextUrl.pathname.endsWith(".jpg") ||
+    req.nextUrl.pathname.endsWith(".png") ||
+    req.nextUrl.pathname.endsWith(".webp")
+  ) {
+    return NextResponse.next();
+  }
+  
   // Redirect unauthenticated users
   if (!token) {
     return NextResponse.redirect(new URL("/auth/signin", req.url));
