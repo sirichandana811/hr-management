@@ -22,7 +22,7 @@ export default function HomePage() {
     alt="Trailbliz Logo"
     className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-lg"
   />
-  Trailbliz <span className="text-gray-600">(Nirudhyog)</span>
+  TrailblizOne 
 </h1>
 
         <div className="flex items-center gap-4">
