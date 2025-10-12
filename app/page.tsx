@@ -211,38 +211,7 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-black">
-            Hear From Our <span className="text-yellow-500">Learners</span>
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              {
-                text: "Trailbliz changed my life! I went from being unsure about my career to landing my first developer job within 3 months.",
-                name: "Priya Sharma",
-                role: "Software Engineer at Accenture",
-              },
-              {
-                text: "The mentors guided me throughout — from resume building to cracking my interviews. Truly grateful!",
-                name: "Rohit Verma",
-                role: "Data Analyst at Deloitte",
-              },
-            ].map((t) => (
-              <motion.div
-                key={t.name}
-                whileHover={{ scale: 1.03 }}
-                className="bg-gray-50 border border-gray-200 rounded-2xl shadow-sm p-8 hover:shadow-lg transition"
-              >
-                <p className="text-lg text-gray-800 italic mb-4">“{t.text}”</p>
-                <footer className="text-black font-semibold">
-                  — {t.name}, <span className="text-gray-600">{t.role}</span>
-                </footer>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+     
 
       {/* Footer */}
       <footer className="bg-black text-gray-400 py-10 mt-auto">
