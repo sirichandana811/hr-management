@@ -46,25 +46,25 @@ export default function HomePage() {
       <section
         className="relative flex flex-col items-center justify-center text-center px-6 pt-36 pb-24 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage:"",
+          backgroundImage:"url('/back3.jpg')",
         }}
       >
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg- backdrop-blur-[2px]" />
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-5xl md:text-7xl font-extrabold mb-6 relative z-10 text-white drop-shadow-lg"
+          className="text-3xl md:text-6xl font-extrabold mb-6 relative z-10 text-black drop-shadow-lg"
         >
-          Empowering <span className="text-yellow-400 underline">Careers</span>,
-          Building <span className="text-yellow-400 underline">Futures</span>
+          Empowering <span className="text-black-400 underline">Careers</span>,
+          Building <span className="text-black-400 underline">Futures</span>
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-lg md:text-xl text-gray-200 max-w-2xl mb-10 relative z-10"
+          className="text-lg md:text-xl text-black-200 max-w-2xl mb-10 relative z-10"
         >
           Trailbliz transforms the unemployed into unstoppable professionals
           through world-class mentorship, career guidance, and job placement
@@ -156,17 +156,17 @@ export default function HomePage() {
               {
                 title: "Full Stack Development",
                 desc: "Master MERN Stack and become a job-ready developer with hands-on projects.",
-                img: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80",
+                img: "/fullstack.png",
               },
               {
                 title: "Data Analytics",
                 desc: "Learn to analyze, visualize, and interpret data using Python, Excel, and Power BI.",
-                img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80",
+                img: "/data.png",
               },
               {
                 title: "Interview & Career Prep",
                 desc: "Enhance your soft skills, resume, and interview techniques with expert mentorship.",
-                img: "https://images.unsplash.com/photo-1581093588401-22d5d1c571b1?auto=format&fit=crop&w=600&q=80",
+                img: "/interview.jpg",
               },
             ].map((p) => (
               <motion.div key={p.title} whileHover={{ y: -8 }}>
