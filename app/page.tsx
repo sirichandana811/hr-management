@@ -72,7 +72,7 @@ export default function HomePage() {
   ];
 
   const companyLogos = [
-    { name: "TCS", url: "https://upload.wikimedia.org/wikipedia/commons/9/95/Tata_Consultancy_Services_Logo.svg" },
+    { name: "TCS", url: "" },
     { name: "Wipro", url: "https://upload.wikimedia.org/wikipedia/commons/a/a0/Wipro_Primary_Logo_Color_RGB.svg" },
     { name: "Infosys", url: "https://upload.wikimedia.org/wikipedia/commons/9/95/Infosys_logo.svg" },
     { name: "Capgemini", url: "https://upload.wikimedia.org/wikipedia/commons/5/56/Capgemini_logo_2017.svg" },

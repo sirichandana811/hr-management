@@ -138,8 +138,8 @@ model TeachingLog {
   topic       String
   description String?
 
-  date        DateTime
-  startTime   DateTime?
+  date        String
+  startTime   String
   endTime     DateTime?
 
   year        String?   // 1st, 2nd, 3rd, 4th year
