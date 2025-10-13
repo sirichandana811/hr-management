@@ -37,16 +37,63 @@ type TeachingLog = {
   teacher: { id: string; name: string | null; email: string };
 };
 
-// helper to format datetime into HH:mm
-const formatTime = (dateString?: string) => {
-  if (!dateString) return "";
-  const d = new Date(dateString);
-  if (isNaN(d.getTime())) return "";
-  const h = d.getHours().toString().padStart(2, "0");
-  const m = d.getMinutes().toString().padStart(2, "0");
-  return `${h}:${m}`;
+// ===== Helper functions =====
+
+// Format HH:mm safely (handles plain time or ISO)
+const formatTime = (value?: string) => {
+  if (!value) return "";
+
+  // already HH:mm
+  if (/^\d{2}:\d{2}$/.test(value)) return value;
+
+  const d = new Date(value);
+  if (!isNaN(d.getTime())) {
+    const h = d.getHours().toString().padStart(2, "0");
+    const m = d.getMinutes().toString().padStart(2, "0");
+    return `${h}:${m}`;
+  }
+
+  return "";
 };
 
+// Parse to local Date object (handles YYYY-MM-DD or ISO)
+const parseToLocalDate = (value?: string): Date | null => {
+  if (!value) return null;
+
+  // If already date-only
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (match) {
+    const [, y, m, d] = match;
+    return new Date(Number(y), Number(m) - 1, Number(d)); // Local date
+  }
+
+  // Try parse as ISO
+  const parsed = new Date(value);
+  return isNaN(parsed.getTime()) ? null : parsed;
+};
+
+// Format display date (local safe)
+const formatDate = (value?: string) => {
+  const d = parseToLocalDate(value);
+  if (!d) return "";
+  return d.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+// Convert to YYYY-MM-DD for <input type="date">
+const toDateInputValue = (value?: string) => {
+  const d = parseToLocalDate(value);
+  if (!d) return "";
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+// ===== Main Page =====
 export default function HRTeachingLogReviewPage() {
   const router = useRouter();
   const [logs, setLogs] = useState<TeachingLog[]>([]);
@@ -77,7 +124,7 @@ export default function HRTeachingLogReviewPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 50;
 
-  // Fetch all logs once (no backend filtering)
+  // Fetch logs
   const fetchLogs = async () => {
     setLoading(true);
     try {
@@ -96,7 +143,7 @@ export default function HRTeachingLogReviewPage() {
     fetchLogs();
   }, []);
 
-  // Apply frontend filtering
+  // Filtering
   const filteredLogs = useMemo(() => {
     return logs.filter((log) => {
       const searchMatch =
@@ -106,18 +153,15 @@ export default function HRTeachingLogReviewPage() {
         log.teacher?.email?.toLowerCase().includes(searchQuery.toLowerCase());
 
       let dateMatch = true;
-      if (fromDate) {
-        dateMatch = new Date(log.date) >= new Date(fromDate);
-      }
-      if (toDate && dateMatch) {
+      if (fromDate) dateMatch = new Date(log.date) >= new Date(fromDate);
+      if (toDate && dateMatch)
         dateMatch = new Date(log.date) <= new Date(toDate);
-      }
 
       return searchMatch && dateMatch;
     });
   }, [logs, searchQuery, fromDate, toDate]);
 
-  // Pagination applied after filtering
+  // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / pageSize));
   const paginatedLogs = filteredLogs.slice(
     (currentPage - 1) * pageSize,
@@ -125,9 +169,10 @@ export default function HRTeachingLogReviewPage() {
   );
 
   useEffect(() => {
-    setCurrentPage(1); // reset when filters change
+    setCurrentPage(1);
   }, [searchQuery, fromDate, toDate]);
 
+  // Edit
   const handleEdit = (log: TeachingLog) => {
     setEditingLog(log);
     setFormData({
@@ -135,7 +180,7 @@ export default function HRTeachingLogReviewPage() {
       subject: log.subject,
       topic: log.topic,
       description: log.description || "",
-      date: log.date.slice(0, 10),
+      date: toDateInputValue(log.date),
       startTime: formatTime(log.startTime),
       endTime: formatTime(log.endTime),
       year: log.year || "",
@@ -148,6 +193,7 @@ export default function HRTeachingLogReviewPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Save changes
   const handleSave = async () => {
     if (!editingLog) return;
     setSaving(true);
@@ -158,6 +204,8 @@ export default function HRTeachingLogReviewPage() {
         body: JSON.stringify({
           id: editingLog.id,
           ...formData,
+          startTime: formData.startTime || "",
+          endTime: formData.endTime || "",
         }),
       });
 
@@ -174,6 +222,7 @@ export default function HRTeachingLogReviewPage() {
     }
   };
 
+  // Delete
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this log?")) return;
     try {
@@ -201,20 +250,20 @@ export default function HRTeachingLogReviewPage() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-         <Input
-    type="date"
-    value={fromDate}
-    onChange={(e) => setFromDate(e.target.value)}
-    className="w-36 text-sm"
-  />
 
-  {/* To Date */}
-  <Input
-    type="date"
-    value={toDate}
-    onChange={(e) => setToDate(e.target.value)}
-    className="w-36 text-sm"
-  />
+        <Input
+          type="date"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+          className="w-36 text-sm"
+        />
+
+        <Input
+          type="date"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+          className="w-36 text-sm"
+        />
 
         {(fromDate || toDate) && (
           <Button
@@ -266,9 +315,7 @@ export default function HRTeachingLogReviewPage() {
                     <TableCell className="max-w-[200px] truncate">
                       {log.description}
                     </TableCell>
-                    <TableCell>
-                      {new Date(log.date).toLocaleDateString()}
-                    </TableCell>
+                    <TableCell>{formatDate(log.date)}</TableCell>
                     <TableCell>
                       {log.startTime ? formatTime(log.startTime) : "-"}
                     </TableCell>
@@ -297,7 +344,6 @@ export default function HRTeachingLogReviewPage() {
             </Table>
           </div>
 
-          {/* Pagination Controls */}
           <div className="flex justify-center items-center gap-2 mt-4">
             <Button
               variant="outline"
@@ -378,6 +424,7 @@ export default function HRTeachingLogReviewPage() {
               value={formData.date}
               onChange={(e) => handleChange("date", e.target.value)}
             />
+
             <div className="flex gap-4">
               <Input
                 type="time"

@@ -28,6 +28,15 @@ function calculateWorkingDays(startDate: string, endDate: string): number {
   return count;
 }
 
+// ✅ Helper function to format date as "DD/MM/YY"
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // months 0-indexed
+  const year = String(date.getFullYear()).slice(-2); // last 2 digits
+  return `${day}/${month}/${year}`;
+}
+
 // Simple modal component
 function Modal({
   open,
@@ -69,10 +78,13 @@ type Leave = {
 
 export default function HRLeaveManagementPage() {
   const [leaves, setLeaves] = useState<Leave[]>([]);
+  const [filteredLeaves, setFilteredLeaves] = useState<Leave[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
   const [editLeave, setEditLeave] = useState<Leave | null>(null);
+  const [filterStart, setFilterStart] = useState<string>("");
+  const [filterEnd, setFilterEnd] = useState<string>("");
 
   // fetch all leave requests
   const fetchLeaves = async () => {
@@ -80,10 +92,13 @@ export default function HRLeaveManagementPage() {
     try {
       const res = await fetch("/api/hr/leaves");
       const data = await res.json();
-      setLeaves(Array.isArray(data) ? data : []);
+      const allLeaves = Array.isArray(data) ? data : [];
+      setLeaves(allLeaves);
+      setFilteredLeaves(allLeaves);
     } catch (err) {
       console.error(err);
       setLeaves([]);
+      setFilteredLeaves([]);
     }
     setLoading(false);
   };
@@ -149,7 +164,7 @@ export default function HRLeaveManagementPage() {
           leaveId: editLeave.id,
           startDate: editLeave.startDate,
           endDate: editLeave.endDate,
-          days: editLeave.days, // ✅ already auto-calculated
+          days: editLeave.days,
         }),
       });
       const data = await res.json();
@@ -168,16 +183,63 @@ export default function HRLeaveManagementPage() {
     }
   };
 
+  // ✅ Filter leaves by date range
+  const filterLeavesByDate = () => {
+    if (!filterStart || !filterEnd) {
+      setFilteredLeaves(leaves);
+      return;
+    }
+    const start = new Date(filterStart);
+    const end = new Date(filterEnd);
+    const filtered = leaves.filter((l) => {
+      const leaveStart = new Date(l.startDate);
+      const leaveEnd = new Date(l.endDate);
+      return leaveEnd >= start && leaveStart <= end;
+    });
+    setFilteredLeaves(filtered);
+  };
+
   return (
     <DashboardLayout title="HR Leave Management">
       <div className="max-w-6xl mx-auto mt-10">
-        {message && (
-          <p className="text-center text-blue-600 mb-4">{message}</p>
-        )}
+        {message && <p className="text-center text-blue-600 mb-4">{message}</p>}
+
+        {/* Filter section */}
+        <div className="flex items-center space-x-3 mb-4">
+          <div>
+            <label className="text-sm font-medium">From:</label>
+            <input
+              type="date"
+              value={filterStart}
+              onChange={(e) => setFilterStart(e.target.value)}
+              className="border px-2 py-1 rounded"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">To:</label>
+            <input
+              type="date"
+              value={filterEnd}
+              onChange={(e) => setFilterEnd(e.target.value)}
+              className="border px-2 py-1 rounded"
+            />
+          </div>
+          <Button onClick={filterLeavesByDate}>Search</Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setFilterStart("");
+              setFilterEnd("");
+              setFilteredLeaves(leaves);
+            }}
+          >
+            Reset
+          </Button>
+        </div>
 
         {loading ? (
           <p>Loading...</p>
-        ) : leaves.length === 0 ? (
+        ) : filteredLeaves.length === 0 ? (
           <p>No leaves found</p>
         ) : (
           <Table>
@@ -194,16 +256,12 @@ export default function HRLeaveManagementPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {leaves.map((leave) => (
+              {filteredLeaves.map((leave) => (
                 <TableRow key={leave.id}>
                   <TableCell>{leave.userName}</TableCell>
                   <TableCell>{leave.leaveTypeName}</TableCell>
-                  <TableCell>
-                    {new Date(leave.startDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(leave.endDate).toLocaleDateString()}
-                  </TableCell>
+                  <TableCell>{formatDate(leave.startDate)}</TableCell>
+                  <TableCell>{formatDate(leave.endDate)}</TableCell>
                   <TableCell>{leave.days}</TableCell>
                   <TableCell>{leave.status}</TableCell>
                   <TableCell>{leave.reason || "-"}</TableCell>
@@ -217,7 +275,6 @@ export default function HRLeaveManagementPage() {
                         >
                           Edit
                         </Button>
-
                         <Button
                           size="sm"
                           disabled={processing === leave.id}
@@ -237,24 +294,25 @@ export default function HRLeaveManagementPage() {
                         </Button>
                       </>
                     )}
-
                     {leave.status === "APPROVED" && (
                       <>
-                      <Button
+                        <Button
                           size="sm"
                           variant="outline"
                           onClick={() => setEditLeave(leave)}
                         >
                           Edit
                         </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        disabled={processing === leave.id}
-                        onClick={() => handleAction(leave.id, "CANCEL")}
-                      >
-                        {processing === leave.id ? "Processing..." : "Cancel"}
-                      </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          disabled={processing === leave.id}
+                          onClick={() => handleAction(leave.id, "CANCEL")}
+                        >
+                          {processing === leave.id
+                            ? "Processing..."
+                            : "Cancel"}
+                        </Button>
                       </>
                     )}
                   </TableCell>

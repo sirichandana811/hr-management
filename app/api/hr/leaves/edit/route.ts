@@ -21,7 +21,6 @@ export async function PATCH(req: Request) {
         { status: 400 }
       );
     }
-
     const leave = await prisma.leaveRequest.findUnique({ 
       where: { id: leaveId },
       include: { user: true }
@@ -44,7 +43,7 @@ export async function PATCH(req: Request) {
     const daysDifference = newDays - oldDays;
 
     // If leave was previously approved, we need to handle balance changes
-    if (leave.status === "APPROVED") {
+    
       const balance = await prisma.leaveBalance.findFirst({
         where: { 
           userId: leave.userId, 
@@ -60,6 +59,7 @@ export async function PATCH(req: Request) {
       }
 
       // If reducing days, restore the difference to balance
+      if (leave.status === "APPROVED") {
       if (daysDifference < 0) {
         const restoreDays = Math.abs(daysDifference);
         await prisma.leaveBalance.update({
@@ -92,6 +92,15 @@ export async function PATCH(req: Request) {
     }
 
     // Update the leave request
+    if(leave.status==="PENDING"){
+      if (newDays > balance.remaining){
+         return NextResponse.json(
+         {error : 'not enough leave balance'},{
+          status:400
+         } 
+         )
+      }
+    }
     const updatedLeave = await prisma.leaveRequest.update({
       where: { id: leaveId },
       data: {
